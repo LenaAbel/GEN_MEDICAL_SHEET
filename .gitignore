@@ -1,2 +1,9 @@
-./ollama_test/venv/
 .env
+test/ollama_test/prompt.txt
+test/mistral_test/prompt.txt
+mistral_test/venv/
+venv/
+
+src/models/__pycache__/
+src/services/__pycache__/
+src/ui/__pycache__/
