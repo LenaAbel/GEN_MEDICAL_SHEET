@@ -25,8 +25,10 @@ class MistralRequestThread(QThread):
 
     # ==================== SIGNALS ====================
     
-    # Emitted with assistant response on success
-    response_ready = Signal(str)
+    # Emitted with each text chunk as it arrives
+    chunk_received = Signal(str)
+    # Emitted when streaming is complete
+    stream_finished = Signal()
     # Emitted with error message on failure
     error_occurred = Signal(str)
 
@@ -41,13 +43,12 @@ class MistralRequestThread(QThread):
 
     def run(self) -> None:
         """
-        Execute API call in background.
-        
-        Runs OFF the main UI thread.
-        Never update UI directly — use signals instead.
+        Execute streaming API call in background.
+        Emits chunks as they arrive for typewriter effect.
         """
         try:
-            assistant_text = self._mistral_service.send_message(self._user_message)
-            self.response_ready.emit(assistant_text)
+            for chunk in self._mistral_service.send_message_stream(self._user_message):
+                self.chunk_received.emit(chunk)
+            self.stream_finished.emit()
         except Exception as e:
             self.error_occurred.emit(str(e))

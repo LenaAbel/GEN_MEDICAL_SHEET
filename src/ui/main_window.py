@@ -147,32 +147,41 @@ class MainWindow(QMainWindow):
         self._input_field.clear()
         self._send_button.setEnabled(False)
         
-        # Show loading spinner
+        # Show loading spinner and prepare streaming bubble
         self._spinner.start()
+        self._chat_widget.start_streaming_message()
 
-        # Start background API request
+        # Start background API request with streaming
         self._request_thread = MistralRequestThread(self._mistral_service, user_message)
-        self._request_thread.response_ready.connect(self._on_response)
+        self._request_thread.chunk_received.connect(self._on_chunk_received)
+        self._request_thread.stream_finished.connect(self._on_stream_finished)
         self._request_thread.error_occurred.connect(self._on_error)
         self._request_thread.finished.connect(self._on_thread_finished)
         self._request_thread.start()
 
-    def _on_response(self, assistant_response: str) -> None:
-        """Handle successful API response."""
+    def _on_chunk_received(self, chunk: str) -> None:
+        """Handle incoming text chunk (typewriter effect)."""
+        # Hide spinner after first chunk arrives
         self._spinner.stop()
-        self._chat_widget.add_message(assistant_response, Role.ASSISTANT)
+        self._chat_widget.append_streaming_chunk(chunk)
+
+    def _on_stream_finished(self) -> None:
+        """Handle end of streaming."""
+        self._chat_widget.finish_streaming()
         self._send_button.setEnabled(True)
 
     def _on_error(self, error_message: str) -> None:
         """Handle API error."""
         self._spinner.stop()
+        self._chat_widget.finish_streaming()
         QMessageBox.warning(self, "API Error", error_message)
         self._send_button.setEnabled(True)
 
     def _on_thread_finished(self) -> None:
         """Clean up thread connections after completion."""
         if self._request_thread:
-            self._request_thread.response_ready.disconnect(self._on_response)
+            self._request_thread.chunk_received.disconnect(self._on_chunk_received)
+            self._request_thread.stream_finished.disconnect(self._on_stream_finished)
             self._request_thread.error_occurred.disconnect(self._on_error)
             self._request_thread.finished.disconnect(self._on_thread_finished)
             self._request_thread = None

@@ -16,7 +16,7 @@ MARKDOWN_EXTENSIONS = [
 ]
 
 
-class MarkdownLabel(QLabel):
+class Markdown(QLabel):
     """QLabel that converts markdown text to HTML for display."""
 
     def __init__(self, text: str = "") -> None:

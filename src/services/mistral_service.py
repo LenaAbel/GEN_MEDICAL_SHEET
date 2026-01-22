@@ -3,7 +3,7 @@ Logic for interacting with the Mistral AI API
 -> Maintains conversation history for context
 '''
 import os
-from typing import List, Dict
+from typing import List, Dict, Generator
 from mistralai import Mistral
 
 
@@ -35,7 +35,7 @@ class MistralService:
     # ==================== PUBLIC METHODS ====================
 
     def send_message(self, user_message: str) -> str:
-        """Send message to Mistral API and return response."""
+        """Send message to Mistral API and return full response."""
         self._add_to_history(role="user", content=user_message)
         
         response = self._client.chat.complete(
@@ -47,6 +47,27 @@ class MistralService:
         self._add_to_history(role="assistant", content=assistant_response)
         
         return assistant_response
+
+    def send_message_stream(self, user_message: str) -> Generator[str, None, None]:
+        """Send message and yield response chunks for typewriter effect."""
+        self._add_to_history(role="user", content=user_message)
+        
+        full_response = ""
+        
+        # Use streaming API
+        stream = self._client.chat.stream(
+            model=self._model,
+            messages=self._conversation_history
+        )
+        
+        for chunk in stream:
+            if chunk.data.choices[0].delta.content:
+                text = chunk.data.choices[0].delta.content
+                full_response += text
+                yield text
+        
+        # Save complete response to history
+        self._add_to_history(role="assistant", content=full_response)
 
     def clear_history(self) -> None:
         """Reset the conversation history."""
