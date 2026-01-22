@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QIcon
 
 from ui.chat_widget import ChatWidget
+from ui.spinner import LoadingSpinner
 from ui.styles import (
     MAIN_WINDOW_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE,
     HEADER_STYLE, LOGO_STYLE
@@ -36,7 +37,6 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self._configure_window()
-        # Instantiate communication with Mistral API
         self._mistral_service = MistralService()
         self._request_thread: MistralRequestThread | None = None
         self._setup_ui()
@@ -101,12 +101,16 @@ class MainWindow(QMainWindow):
     # ==================== INPUT SECTION ====================
 
     def _create_input_area(self) -> QWidget:
-        """Create message input area with text field and send button."""
+        """Create message input area with spinner, text field and send button."""
         container = QWidget()
         
         layout = QHBoxLayout(container)
         layout.setContentsMargins(60, 15, 60, 20)
         layout.setSpacing(12)
+        
+        # Loading spinner (left of input)
+        self._spinner = LoadingSpinner(container)
+        layout.addWidget(self._spinner)
         
         # Text input field
         self._input_field = QTextEdit()
@@ -114,7 +118,7 @@ class MainWindow(QMainWindow):
         self._input_field.setPlaceholderText("Send a message...")
         self._input_field.setStyleSheet(INPUT_FIELD_STYLE)
         
-        # Send button with icon (smaller size)
+        # Send button with icon
         self._send_button = QPushButton()
         self._send_button.setStyleSheet(SEND_BUTTON_STYLE)
         self._send_button.setCursor(Qt.PointingHandCursor)
@@ -142,19 +146,33 @@ class MainWindow(QMainWindow):
         self._chat_widget.add_message(user_message, Role.USER)
         self._input_field.clear()
         self._send_button.setEnabled(False)
+        
+        # Show loading spinner
+        self._spinner.start()
 
         # Start background API request
         self._request_thread = MistralRequestThread(self._mistral_service, user_message)
         self._request_thread.response_ready.connect(self._on_response)
         self._request_thread.error_occurred.connect(self._on_error)
+        self._request_thread.finished.connect(self._on_thread_finished)
         self._request_thread.start()
 
     def _on_response(self, assistant_response: str) -> None:
         """Handle successful API response."""
+        self._spinner.stop()
         self._chat_widget.add_message(assistant_response, Role.ASSISTANT)
         self._send_button.setEnabled(True)
 
     def _on_error(self, error_message: str) -> None:
         """Handle API error."""
+        self._spinner.stop()
         QMessageBox.warning(self, "API Error", error_message)
         self._send_button.setEnabled(True)
+
+    def _on_thread_finished(self) -> None:
+        """Clean up thread connections after completion."""
+        if self._request_thread:
+            self._request_thread.response_ready.disconnect(self._on_response)
+            self._request_thread.error_occurred.disconnect(self._on_error)
+            self._request_thread.finished.disconnect(self._on_thread_finished)
+            self._request_thread = None

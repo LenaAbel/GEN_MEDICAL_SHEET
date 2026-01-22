@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QScrollArea, QVBoxLayout, QWidget, QFrame
 from PySide6.QtCore import Qt, QTimer
 from models.message import Role
 from ui.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE
-from ui.markdown_label import MarkdownLabel
+from ui.markdown import MarkdownLabel
 
 
 class ChatWidget(QScrollArea):

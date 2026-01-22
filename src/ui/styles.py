@@ -2,6 +2,13 @@
 Qt Stylesheets for clean light UI appearance.
 CHU brand color: #1f80c2
 """
+from PySide6.QtGui import QColor
+
+
+# ==================== COLORS ====================
+
+CHU_BLUE = QColor(31, 128, 194)  # #1f80c2
+
 
 # ==================== MAIN WINDOW ====================
 
@@ -129,3 +136,9 @@ QPushButton:disabled {
     background-color: #CCCCCC;
 }
 """
+
+# ==================== SPINNER ====================
+
+SPINNER_COLOR = CHU_BLUE
+SPINNER_SIZE = 40
+SPINNER_LINE_WIDTH = 3
