@@ -16,9 +16,9 @@ Install dependencies:
 
 pip install -r requirements.txt
 
-Run as a server: 
+Run the script :
 
-ollama serve
+python src/main.py
 
 https://www.freecodecamp.org/news/build-a-local-ai/#heading-local-ai-power-with-qwen-3-and-ollama
 

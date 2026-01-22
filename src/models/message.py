@@ -1,13 +1,22 @@
+"""
+Data models for chat messages.
+"""
 from dataclasses import dataclass
 from enum import Enum
 
+
+# ==================== ENUMS ====================
+
 class Role(Enum):
-    # Define roles used in chat messages
+    """Roles used in chat conversation."""
     USER = "user"
     ASSISTANT = "assistant"
 
+
+# ==================== DATA CLASSES ====================
+
 @dataclass
 class Message:
-    # Represent a chat message
+    """Represents a single chat message."""
     role: Role
     content: str

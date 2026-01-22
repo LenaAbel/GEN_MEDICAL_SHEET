@@ -1,32 +1,59 @@
+'''
+Logic for interacting with the Mistral AI API
+-> Maintains conversation history for context
+'''
 import os
+from typing import List, Dict
 from mistralai import Mistral
-from models.message import Message, Role
+
+
+# ==== CONSTANTS ====
+API_KEY_VAR = "MISTRAL_API_KEY"
+DEFAULT_MODEL = "mistral-large-latest"
+
 
 class MistralService:
-    def __init__(self):
-        # Read API key from environment and initialize client
-        api_key = os.getenv("MISTRAL_API_KEY")
+    """
+    Service for communicating with the Mistral AI API.
+    Maintains conversation history to provide context.
+    """
+
+    def __init__(self) -> None:
+        self._client = self._create_client()
+        self._model = DEFAULT_MODEL
+        self._conversation_history: List[Dict[str, str]] = []
+
+    # ==================== CLIENT SETUP ====================
+
+    def _create_client(self) -> Mistral:
+        """Create Mistral API client from environment variable."""
+        api_key = os.getenv(API_KEY_VAR)
         if not api_key:
-            raise RuntimeError("Require MISTRAL_API_KEY in environment")
-        self.client = Mistral(api_key=api_key)
-        self.model = "mistral-large-latest"
-        # Keep conversation history for context
-        self.history = []
+            raise RuntimeError(f"Required environment variable '{API_KEY_VAR}' is not set")
+        return Mistral(api_key=api_key)
 
-    def send_message(self, user_text: str) -> str:
-        # Append user message to history
-        self.history.append({"role": "user", "content": user_text})
-        
-        # Call Mistral chat API with full history
-        response = self.client.chat.complete(model=self.model, messages=self.history)
-        
-        # Extract assistant content and store in history
-        assistant_text = response.choices[0].message.content
-        self.history.append({"role": "assistant", "content": assistant_text})
-        
-        # Return assistant reply text
-        return assistant_text
+    # ==================== PUBLIC METHODS ====================
 
-    def clear_history(self):
-        # Reset conversation history
-        self.history = []
+    def send_message(self, user_message: str) -> str:
+        """Send message to Mistral API and return response."""
+        self._add_to_history(role="user", content=user_message)
+        
+        response = self._client.chat.complete(
+            model=self._model,
+            messages=self._conversation_history
+        )
+        
+        assistant_response = response.choices[0].message.content
+        self._add_to_history(role="assistant", content=assistant_response)
+        
+        return assistant_response
+
+    def clear_history(self) -> None:
+        """Reset the conversation history."""
+        self._conversation_history = []
+
+    # ==================== HISTORY MANAGEMENT ====================
+
+    def _add_to_history(self, role: str, content: str) -> None:
+        """Append message to conversation history."""
+        self._conversation_history.append({"role": role, "content": content})

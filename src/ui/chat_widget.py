@@ -1,36 +1,75 @@
 from PySide6.QtWidgets import QScrollArea, QVBoxLayout, QWidget, QLabel, QFrame
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from models.message import Role
+from ui.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE
+
 
 class ChatWidget(QScrollArea):
-    def __init__(self):
+    """Scrollable chat widget displaying conversation as message bubbles."""
+
+    def __init__(self) -> None:
         super().__init__()
-        # Configure scroll area
+        self._setup_scroll_area()
+        self._setup_message_container()
+
+    # ==================== SETUP ====================
+
+    def _setup_scroll_area(self) -> None:
+        """Configure scroll area properties."""
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        
-        # Create container layout for messages
-        self.container = QWidget()
-        self.layout = QVBoxLayout(self.container)
-        self.layout.addStretch()
-        self.setWidget(self.container)
+        self.setStyleSheet(CHAT_WIDGET_STYLE)
 
-    def add_message(self, text: str, role: Role):
-        # Create message bubble and label
+    def _setup_message_container(self) -> None:
+        """Create container for message bubbles."""
+        self._container = QWidget()
+        self._layout = QVBoxLayout(self._container)
+        self._layout.addStretch()
+        self._layout.setSpacing(4)
+        self._layout.setContentsMargins(0, 20, 0, 20)
+        self.setWidget(self._container)
+
+    # ==================== PUBLIC METHODS ====================
+
+    def add_message(self, text: str, role: Role) -> None:
+        """Add a message bubble to the chat."""
+        bubble = self._create_bubble(text, role)
+        self._insert_bubble(bubble)
+        QTimer.singleShot(10, self._scroll_to_bottom)
+
+    # ==================== BUBBLE CREATION ====================
+
+    def _create_bubble(self, text: str, role: Role) -> QFrame:
+        """Create styled message bubble."""
         bubble = QFrame()
-        bubble_layout = QVBoxLayout(bubble)
+        layout = QVBoxLayout(bubble)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
         label = QLabel(text)
         label.setWordWrap(True)
-        bubble_layout.addWidget(label)
-        
-        # Style bubble according to role
+        label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        layout.addWidget(label)
+
+        self._apply_bubble_style(bubble, label, role)
+        return bubble
+
+    def _apply_bubble_style(self, bubble: QFrame, label: QLabel, role: Role) -> None:
+        """Apply style based on message role."""
         if role == Role.USER:
-            bubble.setStyleSheet("background-color: #007AFF; color: white; border-radius: 10px; padding: 10px;")
+            bubble.setStyleSheet(USER_BUBBLE_STYLE)
             label.setAlignment(Qt.AlignRight)
         else:
-            bubble.setStyleSheet("background-color: #E5E5EA; color: black; border-radius: 10px; padding: 10px;")
+            bubble.setStyleSheet(ASSISTANT_BUBBLE_STYLE)
             label.setAlignment(Qt.AlignLeft)
-        
-        # Insert bubble and scroll to bottom
-        self.layout.insertWidget(self.layout.count() - 1, bubble)
-        self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
+
+    # ==================== LAYOUT MANAGEMENT ====================
+
+    def _insert_bubble(self, bubble: QFrame) -> None:
+        """Insert bubble above the stretch spacer."""
+        insert_position = self._layout.count() - 1
+        self._layout.insertWidget(insert_position, bubble)
+
+    def _scroll_to_bottom(self) -> None:
+        """Scroll to show latest message."""
+        scrollbar = self.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
