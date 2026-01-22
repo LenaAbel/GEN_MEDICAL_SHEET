@@ -1,7 +1,8 @@
-from PySide6.QtWidgets import QScrollArea, QVBoxLayout, QWidget, QLabel, QFrame
+from PySide6.QtWidgets import QScrollArea, QVBoxLayout, QWidget, QFrame
 from PySide6.QtCore import Qt, QTimer
 from models.message import Role
 from ui.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE
+from ui.markdown_label import MarkdownLabel
 
 
 class ChatWidget(QScrollArea):
@@ -40,20 +41,19 @@ class ChatWidget(QScrollArea):
     # ==================== BUBBLE CREATION ====================
 
     def _create_bubble(self, text: str, role: Role) -> QFrame:
-        """Create styled message bubble."""
+        """Create styled message bubble with markdown support."""
         bubble = QFrame()
         layout = QVBoxLayout(bubble)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        label = QLabel(text)
-        label.setWordWrap(True)
-        label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        # Use MarkdownLabel for rich text rendering
+        label = MarkdownLabel(text)
         layout.addWidget(label)
 
         self._apply_bubble_style(bubble, label, role)
         return bubble
 
-    def _apply_bubble_style(self, bubble: QFrame, label: QLabel, role: Role) -> None:
+    def _apply_bubble_style(self, bubble: QFrame, label: MarkdownLabel, role: Role) -> None:
         """Apply style based on message role."""
         if role == Role.USER:
             bubble.setStyleSheet(USER_BUBBLE_STYLE)

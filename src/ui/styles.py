@@ -70,6 +70,9 @@ QLabel {
     font-size: 14px;
     background-color: transparent;
 }
+QLabel a {
+    color: #E0F0FF;
+}
 """
 
 ASSISTANT_BUBBLE_STYLE = """
@@ -84,6 +87,9 @@ QLabel {
     color: #333333;
     font-size: 14px;
     background-color: transparent;
+}
+QLabel a {
+    color: #1f80c2;
 }
 """
 
