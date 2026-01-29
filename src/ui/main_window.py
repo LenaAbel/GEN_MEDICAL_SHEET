@@ -18,7 +18,7 @@ from models.message import Role
 
 
 # ==== CONSTANTS ====
-WINDOW_TITLE = "Medical Sheet Generator"
+WINDOW_TITLE = "Générateur de Fiche Médicale - CHU Besançon"
 WINDOW_MIN_SIZE = (900, 700)
 INPUT_MAX_HEIGHT = 100
 LOGO_HEIGHT = 40

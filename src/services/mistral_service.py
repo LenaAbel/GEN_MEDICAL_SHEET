@@ -5,6 +5,7 @@ Logic for interacting with the Mistral AI API
 import os
 from typing import List, Dict, Generator
 from mistralai import Mistral
+from services.prompts import SYSTEM_PROMPT
 
 
 # ==== CONSTANTS ====
@@ -22,6 +23,7 @@ class MistralService:
         self._client = self._create_client()
         self._model = DEFAULT_MODEL
         self._conversation_history: List[Dict[str, str]] = []
+        self._initialize_system_prompt()
 
     # ==================== CLIENT SETUP ====================
 
@@ -31,6 +33,13 @@ class MistralService:
         if not api_key:
             raise RuntimeError(f"Required environment variable '{API_KEY_VAR}' is not set")
         return Mistral(api_key=api_key)
+
+    def _initialize_system_prompt(self) -> None:
+        """Add system prompt to start of conversation."""
+        self._conversation_history.append({
+            "role": "system",
+            "content": SYSTEM_PROMPT
+        })
 
     # ==================== PUBLIC METHODS ====================
 
@@ -70,8 +79,9 @@ class MistralService:
         self._add_to_history(role="assistant", content=full_response)
 
     def clear_history(self) -> None:
-        """Reset the conversation history."""
+        """Reset the conversation history and re-add system prompt."""
         self._conversation_history = []
+        self._initialize_system_prompt()
 
     # ==================== HISTORY MANAGEMENT ====================
 

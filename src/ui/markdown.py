@@ -9,10 +9,10 @@ from PySide6.QtCore import Qt
 
 # Markdown extensions for code blocks, tables, etc.
 MARKDOWN_EXTENSIONS = [
-    'fenced_code',      # ```code blocks```
-    'tables',           # | tables |
-    'nl2br',            # newlines to <br>
-    'sane_lists',       # better list handling
+    'fenced_code',
+    'tables',
+    'nl2br',
+    'sane_lists',
 ]
 
 
