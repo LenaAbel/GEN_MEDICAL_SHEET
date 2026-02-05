@@ -7,12 +7,11 @@ from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt
 
 
-# Markdown extensions for code blocks, tables, etc.
 MARKDOWN_EXTENSIONS = [
-    'fenced_code',
-    'tables',
-    'nl2br',
-    'sane_lists',
+    'fenced_code',    # For code blocks with triple backticks
+    'tables',         # For markdown tables
+    'nl2br',          # Convert newlines to <br> tags
+    'sane_lists',     # Better handling of lists
 ]
 
 

@@ -25,7 +25,6 @@ LOGO_HEIGHT = 40
 HEADER_HEIGHT = 60
 SEND_BUTTON_SIZE = 36
 
-# Asset paths
 ASSETS_DIR = Path(__file__).parent / "img"
 LOGO_PATH = ASSETS_DIR / "chu_logo.svg"
 SEND_ICON_PATH = ASSETS_DIR / "send_icon.svg"
@@ -112,10 +111,10 @@ class MainWindow(QMainWindow):
         self._spinner = LoadingSpinner(container)
         layout.addWidget(self._spinner)
         
-        # Text input field
+        # Input text area for user messages
         self._input_field = QTextEdit()
         self._input_field.setMaximumHeight(INPUT_MAX_HEIGHT)
-        self._input_field.setPlaceholderText("Send a message...")
+        self._input_field.setPlaceholderText("Envoyer votre message...")
         self._input_field.setStyleSheet(INPUT_FIELD_STYLE)
         
         # Send button with icon
@@ -123,6 +122,7 @@ class MainWindow(QMainWindow):
         self._send_button.setStyleSheet(SEND_BUTTON_STYLE)
         self._send_button.setCursor(Qt.PointingHandCursor)
         self._send_button.setFixedSize(SEND_BUTTON_SIZE, SEND_BUTTON_SIZE)
+
         if SEND_ICON_PATH.exists():
             self._send_button.setIcon(QIcon(str(SEND_ICON_PATH)))
         else:
@@ -163,6 +163,7 @@ class MainWindow(QMainWindow):
         """Handle incoming text chunk (typewriter effect)."""
         # Hide spinner after first chunk arrives
         self._spinner.stop()
+        # Streaming chunk for typewriter effect
         self._chat_widget.append_streaming_chunk(chunk)
 
     def _on_stream_finished(self) -> None:

@@ -10,7 +10,7 @@ from services.prompts import SYSTEM_PROMPT
 
 # ==== CONSTANTS ====
 API_KEY_VAR = "MISTRAL_API_KEY"
-DEFAULT_MODEL = "mistral-large-latest"
+DEFAULT_MODEL = "mistral-medium-latest"
 
 
 class MistralService:
@@ -25,13 +25,13 @@ class MistralService:
         self._conversation_history: List[Dict[str, str]] = []
         self._initialize_system_prompt()
 
-    # ==================== CLIENT SETUP ====================
+    # ==================== CLIENT SETUP FOR MISTRAL ====================
 
     def _create_client(self) -> Mistral:
         """Create Mistral API client from environment variable."""
         api_key = os.getenv(API_KEY_VAR)
         if not api_key:
-            raise RuntimeError(f"Required environment variable '{API_KEY_VAR}' is not set")
+            raise RuntimeError(f"Required environment variable '{API_KEY_VAR}' is not set !")
         return Mistral(api_key=api_key)
 
     def _initialize_system_prompt(self) -> None:

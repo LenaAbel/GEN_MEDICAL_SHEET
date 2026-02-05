@@ -40,8 +40,6 @@ class LoadingSpinner(QWidget):
         """Set spinner color."""
         self._color = color
 
-    # ==================== INTERNAL ====================
-
     def _rotate(self) -> None:
         """Increment angle and trigger repaint."""
         self._angle = (self._angle + 30) % 360

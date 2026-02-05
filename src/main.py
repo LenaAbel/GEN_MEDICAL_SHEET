@@ -6,7 +6,6 @@ from ui.main_window import MainWindow
 def main():
     load_dotenv()
 
-    # Create the applicatop
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
