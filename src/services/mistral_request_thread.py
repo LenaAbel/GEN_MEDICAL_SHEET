@@ -9,11 +9,6 @@ from services.mistral_service import MistralService
 class MistralRequestThread(QThread):
     """
     Execute Mistral API call in background thread.
-    
-    Why a thread?
-    - Network calls to Mistral takes time (1-10 seconds)
-    - Running on main thread would freeze the UI
-    - This thread runs separately, UI stays responsive
 
     Flow:
     1. MainWindow creates thread with message

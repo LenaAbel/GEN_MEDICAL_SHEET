@@ -57,7 +57,7 @@ CHAMPS CRITIQUES À EXTRAIRE EXACTEMENT:
 Ces informations doivent être copiées EXACTEMENT telles qu'elles apparaissent dans les données:
 
 - Date intervention: Copier la date exacte (ex: "25/01/2023")
-- heure intervention: Copier l'heure exacte (ex: "07:30" ou "1X:30")
+- heure intervention: Copier l'heure exacte (ex: "07:30")
 - Geste opératoire: Copier la description exacte
 - type d'anesthésie: AG, ALR, ou autre tel que mentionné
 - post-opératoire: SSPI, Réanimation, etc. tel que mentionné
@@ -95,6 +95,52 @@ RÈGLES ANTI-HALLUCINATION - TRÈS IMPORTANT:
    - Si tu ne trouves pas la source, ne l'inclus pas
 """
 
+SIMPLIFIED_VOCABULARY = """
+DICTIONNAIRE DE TERMES SIMPLIFIÉS (OBLIGATOIRE):
+Traduis toujours ces termes techniques en langage simple pour le patient:
+
+COMPLICATIONS & PATHOLOGIES:
+- "Désunion de cicatrice" → "la cicatrice s'est ouverte"
+- "Suppuration" → "infection avec écoulement"
+- "Sérôme" → "accumulation de liquide transparent"
+- "Infection ostéo-articulaire (IOA)" → "infection au niveau de l'articulation"
+- "Reflux gastro-œsophagien (RGO)" → "remontée d'acide depuis l'estomac"
+
+ANESTHÉSIE & INTUBATION:
+- "Intubation orotrachéale (IOT)" → "tube d'air dans la gorge"
+- "Ventilation au masque (VAM)" → "respiration assistée par masque"
+- "Anesthésie loco-régionale (ALR)" → "endormissement d'une partie du corps seulement"
+
+EXAMENS & RÉSULTATS:
+- "Échographie trans-thoracique (ETT)" → "échographie du cœur"
+- "Épreuve fonctionnelle respiratoire (EFR)" → "test de respiration"
+- "Électrocardiogramme (ECG)" → "enregistrement du cœur"
+
+MÉDICAMENTS & TRAITEMENTS:
+- "Prémédication" → "médicament donné avant l'opération"
+- "Antibioprophylaxie" → "antibiotique préventif"
+- "Transfusion" → "apport de sang"
+- "Lovenox" → "médicament contre la formation de caillots"
+- "Cloxacilline" → "antibiotique"
+
+ÉTATS & SCORES:
+- "ASA 1" → "vous êtes en bonne santé"
+- "ASA 2" → "vous avez une légère atteinte de santé"
+- "APFEL" → "score de risque de nausées/vomissements après opération"
+- "Mallampati" → "classification pour évaluer la facilité d'intubation"
+
+AUTRES:
+- "SSPI" → "salle de réveil après l'opération"
+- "RAS" → "rien à signaler"
+- "ATCD" → "antécédents (maladies/problèmes passés)"
+- "BMI" ou "IMC" → "indice de masse corporelle"
+- "VAM obésité" ou "VAM ronflement" → "facteurs compliquant la respiration"
+- "PTH" → "prothèse de hanche"
+
+RÈGLE GÉNÉRALE:
+Si un terme n'est pas dans cette liste et reste technique, explique-le simplement dans la fiche plutôt que de le laisser tel quel.
+"""
+
 EXAMPLE_EXTRACTION = """
 EXEMPLE DE TRAITEMENT CORRECT:
 
@@ -123,6 +169,8 @@ Générer une fiche d'information personnalisée, claire et compréhensible pour
 
 {CRITICAL_FIELDS_EXTRACTION}
 
+{SIMPLIFIED_VOCABULARY}
+
 RÈGLES DE RÉDACTION:
 1. Utilise un langage simple et accessible, évite le jargon médical ou explique-le
 2. Structure la fiche de manière logique et lisible
@@ -133,13 +181,42 @@ RÈGLES DE RÉDACTION:
 7. Mentionne les risques de manière rassurante mais honnête
 8. Indique les informations pratiques (date, heure, lieu post-op)
 
-STRUCTURE SUGGÉRÉE DE LA FICHE:
-1. **Informations générales** (date, heure, type d'intervention)
-2. **Votre anesthésie** (type, technique)
-3. **Consignes de jeûne** (alimentation, boissons)
-4. **Vos médicaments** (à continuer, à arrêter, prémédication)
-5. **Après l'intervention** (lieu de surveillance)
-6. **Informations complémentaires** (transfusion si applicable, risques)
+RÈGLES DE LANGAGE (SIMPLIFICATION - OBLIGATOIRE):
+- Adressez-vous au patient en utilisant "vous".
+- Utilisez des phrases courtes et un vocabulaire courant.
+- Remplacez les termes techniques par des expressions simples.
+- Si un terme médical doit être utilisé, donnez une brève explication entre parenthèses la première fois seulement.
+- Évitez les acronymes ; si vous devez en utiliser un, écrivez d'abord le terme en clair puis l'abréviation entre parenthèses.
+- Ne fournissez pas de détails techniques inutiles (procédures opératoires détaillées, noms de techniques complexes) ; concentrez-vous sur ce que le patient doit savoir et faire.
+- Si une valeur est "???", "NE" ou absente, ne la mentionnez pas. N'inventez jamais d'informations.
+
+- Après la simplification, indiquez entre parenthèses le terme technique original **la première fois** qu'il apparaît. Exemples :
+   - "la cicatrice s'est ouverte (désunion de cicatrice)"
+   - "surveillance en salle de réveil après l'opération (SSPI)"
+   - "anesthésie qui vous endort pour l'opération (anesthésie générale)"
+
+EXEMPLES DE FORMULATIONS SIMPLIFIÉES:
+- Technique: "Anesthésie générale" → "Vous recevrez une anesthésie qui vous endort pour l'opération (anesthésie générale)."
+- Jeûne: "A jeun 6h" → "Ne pas manger 6 heures avant l'intervention; vous pouvez boire des liquides clairs jusqu'à 2 heures avant (A jeun 6h)."
+- Post-opératoire: "SSPI" → "Surveillance en salle de réveil après l'opération (SSPI)."
+
+STRUCTURE OBLIGATOIRE DE LA FICHE:
+1. **FICHE PATIENT - CHU DE BESANÇON**
+2. **Informations générales** (date, heure, type d'intervention)
+3. **Votre anesthésie** (type, technique)
+4. **Consignes de jeûne** (alimentation, boissons)
+5. **Vos médicaments** (à continuer, à arrêter, prémédication)
+6. **Après l'intervention** (lieu de surveillance)
+7. **Informations complémentaires** (transfusion si applicable, risques)
+8. **Encadré final** : terminer la fiche par : "CHU de Besançon - Service d'Anesthésie  En cas d'interrogation contactez le : 07-00-00-00-00"
+
+RÈGLES SUPPLÉMENTAIRES POUR LA SORTIE:
+- Ne mentionne jamais une donnée qui n'est pas fournie.
+- Si un champ est absent, vide, "???" ou "NE", ne l'inclus pas dans la fiche.
+- N'écris pas de ligne comme "Docteur : XXX" sauf si le nom du médecin est explicitement présent dans les données.
+- Ne reformule pas un champ manquant par une autre information inventée.
+- Il est important que la fiche suive strictement la structure et les règles de rédaction pour garantir la clarté et la pertinence des informations fournies au patient.
+- L'encadré final doit être la dernière ligne de la fiche, sans aucune information après. La ligne est copié comme donné. Le num2ro de téléphone n'est pas changé, il doit être recopié tel quel.
 
 {SFAR_ABBREVIATIONS}
 
