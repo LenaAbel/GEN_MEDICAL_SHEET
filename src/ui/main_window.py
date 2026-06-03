@@ -10,7 +10,7 @@ from ui.chat_widget import ChatWidget
 from ui.spinner import LoadingSpinner
 from ui.styles import (
     MAIN_WINDOW_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE,
-    HEADER_STYLE, LOGO_STYLE
+    HEADER_STYLE, LOGO_STYLE, DISCLAIMER_STYLE
 )
 from services.mistral_service import MistralService
 from services.mistral_request_thread import MistralRequestThread
@@ -103,11 +103,20 @@ class MainWindow(QMainWindow):
         """Create message input area with spinner, text field and send button."""
         container = QWidget()
         
-        layout = QHBoxLayout(container)
-        layout.setContentsMargins(60, 15, 60, 20)
+        main_layout = QVBoxLayout(container)
+        main_layout.setContentsMargins(60, 15, 60, 20)
+        main_layout.setSpacing(8)
+        
+        # Disclaimer text
+        disclaimer = QLabel("⚠ L'IA peut halluciner. Vérifiez toujours les informations importantes.")
+        disclaimer.setStyleSheet(DISCLAIMER_STYLE)
+        main_layout.addWidget(disclaimer)
+        
+        # Input controls layout
+        layout = QHBoxLayout()
         layout.setSpacing(12)
         
-        # Loading spinner (left of input)
+        # Loading spinner
         self._spinner = LoadingSpinner(container)
         layout.addWidget(self._spinner)
         
@@ -131,6 +140,8 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(self._input_field)
         layout.addWidget(self._send_button)
+        
+        main_layout.addLayout(layout)
         
         return container
 

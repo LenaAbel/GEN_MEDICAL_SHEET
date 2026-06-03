@@ -1,7 +1,12 @@
-from PySide6.QtWidgets import QScrollArea, QVBoxLayout, QWidget, QFrame
+from PySide6.QtWidgets import (
+    QScrollArea, QVBoxLayout, QHBoxLayout, QWidget, QFrame, QPushButton, QDialog, QTextEdit, QFileDialog
+)
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QTextDocument
+from PySide6.QtPrintSupport import QPrinter
+import markdown
 from models.message import Role
-from ui.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE
+from ui.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE, EDIT_BUTTON_STYLE
 from ui.markdown import Markdown
 
 
@@ -13,6 +18,9 @@ class ChatWidget(QScrollArea):
         self._setup_scroll_area()
         self._setup_message_container()
         self._streaming_label: Markdown | None = None
+        self._edited_messages: dict[int, str] = {}
+        self._message_counter = 0
+        self._last_assistant_message_id: int | None = None
 
     # ==================== SETUP ====================
 
@@ -53,6 +61,8 @@ class ChatWidget(QScrollArea):
         
         self._streaming_bubble = bubble
         self._streaming_text = ""
+        self._message_counter += 1
+        self._last_assistant_message_id = self._message_counter
         self._insert_bubble(bubble)
 
     def append_streaming_chunk(self, chunk: str) -> None:
@@ -63,10 +73,115 @@ class ChatWidget(QScrollArea):
             QTimer.singleShot(10, self._scroll_to_bottom)
 
     def finish_streaming(self) -> None:
-        """Mark streaming as complete and reset state."""
+        """Mark streaming as complete and add edit button."""
+        if self._streaming_bubble and self._last_assistant_message_id:
+            self._add_edit_button(self._streaming_bubble, self._last_assistant_message_id, self._streaming_text)
+        
         self._streaming_label = None
         self._streaming_bubble = None
         self._streaming_text = ""
+
+    # ==================== EDIT ====================
+
+    def _add_edit_button(self, bubble: QFrame, message_id: int, original_text: str) -> None:
+        """Add edit button under an AI message bubble."""
+        layout = bubble.layout()
+        button_row = QHBoxLayout()
+        
+        edit_button = QPushButton("✏ Éditer")
+        edit_button.setStyleSheet(EDIT_BUTTON_STYLE)
+        edit_button.setCursor(Qt.PointingHandCursor)
+        edit_button.setMaximumWidth(100)
+
+        pdf_button = QPushButton("PDF")
+        pdf_button.setStyleSheet(EDIT_BUTTON_STYLE)
+        pdf_button.setCursor(Qt.PointingHandCursor)
+        pdf_button.setMaximumWidth(60)
+        
+        def on_edit_clicked() -> None:
+            self._open_edit_dialog(message_id, original_text, bubble)
+
+        def on_pdf_clicked() -> None:
+            self._export_message_as_pdf(message_id, original_text)
+        
+        edit_button.clicked.connect(on_edit_clicked)
+        pdf_button.clicked.connect(on_pdf_clicked)
+        button_row.addWidget(edit_button)
+        button_row.addWidget(pdf_button)
+        layout.addLayout(button_row)
+
+    def _open_edit_dialog(self, message_id: int, original_text: str, bubble: QFrame) -> None:
+        """Open dialog to edit AI message."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Éditer le message")
+        dialog.setGeometry(200, 200, 600, 300)
+        
+        layout = QVBoxLayout(dialog)
+        
+        text_edit = QTextEdit()
+        current_text = self._edited_messages.get(message_id, original_text)
+        text_edit.setPlainText(current_text)
+        layout.addWidget(text_edit)
+        
+        button_layout = QVBoxLayout()
+        
+        save_button = QPushButton("Enregistrer")
+        cancel_button = QPushButton("Annuler")
+        
+        def on_save() -> None:
+            edited_text = text_edit.toPlainText()
+            self._edited_messages[message_id] = edited_text
+            self._update_message_in_bubble(bubble, edited_text)
+            dialog.accept()
+        
+        def on_cancel() -> None:
+            dialog.reject()
+        
+        save_button.clicked.connect(on_save)
+        cancel_button.clicked.connect(on_cancel)
+        
+        button_layout.addWidget(save_button)
+        button_layout.addWidget(cancel_button)
+        layout.addLayout(button_layout)
+        
+        dialog.exec()
+
+    def _export_message_as_pdf(self, message_id: int, original_text: str) -> None:
+        """Export the latest version of an AI message to a PDF file."""
+        text = self._edited_messages.get(message_id, original_text)
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Exporter le message en PDF",
+            "fiche_medicale.pdf",
+            "PDF Files (*.pdf)"
+        )
+        if not file_path:
+            return
+
+        if not file_path.lower().endswith(".pdf"):
+            file_path += ".pdf"
+
+        html = markdown.markdown(text, extensions=[
+            'fenced_code',
+            'tables',
+            'nl2br',
+            'sane_lists',
+        ])
+        document = QTextDocument()
+        document.setHtml(html)
+
+        printer = QPrinter(QPrinter.HighResolution)
+        printer.setOutputFormat(QPrinter.PdfFormat)
+        printer.setOutputFileName(file_path)
+        document.print_(printer)
+
+    def _update_message_in_bubble(self, bubble: QFrame, new_text: str) -> None:
+        """Update the text content of a message bubble."""
+        layout = bubble.layout()
+        if layout and layout.count() > 0:
+            widget = layout.itemAt(0).widget()
+            if isinstance(widget, Markdown):
+                widget.set_markdown(new_text)
 
     # ==================== BUBBLE CREATION ====================
 

@@ -142,3 +142,27 @@ QPushButton:disabled {
 SPINNER_COLOR = CHU_BLUE
 SPINNER_SIZE = 40
 SPINNER_LINE_WIDTH = 3
+
+# ==================== EDIT BUTTON====================
+EDIT_BUTTON_STYLE = """
+QPushButton {
+                background-color: #1f80c2;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #1568a3;
+            }
+"""
+
+# ==================== DISCLAIMER ====================
+DISCLAIMER_STYLE = """
+QLabel {
+    color: #999999;
+    font-size: 11px;
+    background-color: transparent;
+}
+"""
