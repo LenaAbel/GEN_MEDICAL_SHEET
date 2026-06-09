@@ -10,7 +10,7 @@ from ui.chat_widget import ChatWidget
 from ui.spinner import LoadingSpinner
 from ui.styles import (
     MAIN_WINDOW_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE,
-    HEADER_STYLE, LOGO_STYLE, DISCLAIMER_STYLE
+    HEADER_STYLE, LOGO_STYLE, DISCLAIMER_STYLE, NEW_CONVERSATION_BUTTON_STYLE
 )
 from services.mistral_service import MistralService
 from services.mistral_request_thread import MistralRequestThread
@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         self._configure_window()
         self._mistral_service = MistralService()
         self._request_thread: MistralRequestThread | None = None
+        self._conversation_session_id = 0
         self._setup_ui()
 
     # ==================== WINDOW CONFIGURATION ====================
@@ -87,6 +88,13 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(self._logo_label)
         layout.addStretch()
+
+        self._new_conversation_button = QPushButton("+")
+        self._new_conversation_button.setToolTip("Nouvelle conversation")
+        self._new_conversation_button.setCursor(Qt.PointingHandCursor)
+        self._new_conversation_button.setStyleSheet(NEW_CONVERSATION_BUTTON_STYLE)
+        self._new_conversation_button.clicked.connect(self._start_new_conversation)
+        layout.addWidget(self._new_conversation_button)
         
         return self._header
 
@@ -155,6 +163,8 @@ class MainWindow(QMainWindow):
         if not user_message:
             return
 
+        conversation_id = self._conversation_session_id
+
         # Display user message and clear input
         self._chat_widget.add_message(user_message, Role.USER)
         self._input_field.clear()
@@ -166,39 +176,60 @@ class MainWindow(QMainWindow):
 
         # Start background API request with streaming
         self._request_thread = MistralRequestThread(self._mistral_service, user_message)
-        self._request_thread.chunk_received.connect(self._on_chunk_received)
-        self._request_thread.stream_finished.connect(self._on_stream_finished)
-        self._request_thread.error_occurred.connect(self._on_error)
-        self._request_thread.finished.connect(self._on_thread_finished)
+        self._request_thread.chunk_received.connect(
+            lambda chunk, cid=conversation_id: self._on_chunk_received(cid, chunk)
+        )
+        self._request_thread.stream_finished.connect(
+            lambda cid=conversation_id: self._on_stream_finished(cid)
+        )
+        self._request_thread.error_occurred.connect(
+            lambda error_message, cid=conversation_id: self._on_error(cid, error_message)
+        )
+        self._request_thread.finished.connect(
+            lambda cid=conversation_id: self._on_thread_finished(cid)
+        )
         self._request_thread.start()
 
-    def _on_chunk_received(self, chunk: str) -> None:
+    def _on_chunk_received(self, conversation_id: int, chunk: str) -> None:
         """Handle incoming text chunk (typewriter effect)."""
+        if conversation_id != self._conversation_session_id:
+            return
         # Hide spinner after first chunk arrives
         self._spinner.stop()
         # Streaming chunk for typewriter effect
         self._chat_widget.append_streaming_chunk(chunk)
 
-    def _on_stream_finished(self) -> None:
+    def _on_stream_finished(self, conversation_id: int) -> None:
         """Handle end of streaming."""
+        if conversation_id != self._conversation_session_id:
+            return
         self._chat_widget.finish_streaming()
         self._send_button.setEnabled(True)
 
-    def _on_error(self, error_message: str) -> None:
+    def _on_error(self, conversation_id: int, error_message: str) -> None:
         """Handle API error."""
+        if conversation_id != self._conversation_session_id:
+            return
         self._spinner.stop()
         self._chat_widget.finish_streaming()
         QMessageBox.warning(self, "API Error", error_message)
         self._send_button.setEnabled(True)
 
-    def _on_thread_finished(self) -> None:
+    def _on_thread_finished(self, conversation_id: int) -> None:
         """Clean up thread connections after completion."""
-        if self._request_thread:
-            self._request_thread.chunk_received.disconnect(self._on_chunk_received)
-            self._request_thread.stream_finished.disconnect(self._on_stream_finished)
-            self._request_thread.error_occurred.disconnect(self._on_error)
-            self._request_thread.finished.disconnect(self._on_thread_finished)
-            self._request_thread = None
+        if conversation_id != self._conversation_session_id:
+            return
+        self._request_thread = None
+
+    def _start_new_conversation(self) -> None:
+        """Reset the UI and AI history for a fresh conversation."""
+        self._conversation_session_id += 1
+        self._request_thread = None
+        self._spinner.stop()
+        self._send_button.setEnabled(True)
+        self._input_field.clear()
+        self._chat_widget.clear_conversation()
+        self._mistral_service.clear_history()
 
     def resizeEvent(self, event) -> None:
         """Keep the main view proportions comfortable as the window changes."""

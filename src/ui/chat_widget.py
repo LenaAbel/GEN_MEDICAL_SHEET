@@ -42,6 +42,23 @@ class ChatWidget(QScrollArea):
         self.setWidget(self._container)
         apply_chat_responsive_layout(self, self._layout, self._bubbles)
 
+    def clear_conversation(self) -> None:
+        """Remove all messages and reset chat-local state."""
+        for bubble, _role in self._bubbles:
+            self._layout.removeWidget(bubble)
+            bubble.setParent(None)
+            bubble.deleteLater()
+
+        self._bubbles.clear()
+        self._edited_messages.clear()
+        self._message_counter = 0
+        self._last_assistant_message_id = None
+        self._streaming_label = None
+        self._streaming_bubble = None
+        self._streaming_text = ""
+
+        apply_chat_responsive_layout(self, self._layout, self._bubbles)
+
     # ==================== PUBLIC METHODS ====================
 
     def add_message(self, text: str, role: Role) -> None:

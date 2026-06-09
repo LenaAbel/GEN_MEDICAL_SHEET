@@ -156,6 +156,25 @@ QPushButton {
             }
 """
 
+# ==================== HEADER ACTIONS ====================
+NEW_CONVERSATION_BUTTON_STYLE = """
+QPushButton {
+    background-color: transparent;
+    color: #1f80c2;
+    border: 1px solid #D6E8F5;
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 18px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #EEF7FC;
+}
+QPushButton:pressed {
+    background-color: #DCEEF9;
+}
+"""
+
 # ==================== EDIT DIALOG ====================
 EDIT_DIALOG_STYLE = """
 QDialog {
