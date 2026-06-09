@@ -3,12 +3,11 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QVBoxLayout,
-    QTextEdit,
-    QSizePolicy,
 )
 
 from ui.responsive import dialog_size_for_parent
 from ui.styles import EDIT_BUTTON_STYLE, EDIT_DIALOG_STYLE
+from ui.markdown_editor import MarkdownEditorWidget
 
 
 class EditMessageDialog(QDialog):
@@ -43,10 +42,8 @@ class EditMessageDialog(QDialog):
         layout.setContentsMargins(18, 18, 18, 18)
         layout.setSpacing(12)
 
-        self._text_edit = QTextEdit()
-        self._text_edit.setPlainText(self._initial_text)
-        self._text_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        layout.addWidget(self._text_edit)
+        self._markdown_editor = MarkdownEditorWidget(self._initial_text, self)
+        layout.addWidget(self._markdown_editor)
 
         self._button_box = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         self._button_box.button(QDialogButtonBox.Save).setText("Enregistrer")
@@ -85,4 +82,4 @@ class EditMessageDialog(QDialog):
 
     def edited_text(self) -> str:
         """Return the current text in the editor."""
-        return self._text_edit.toPlainText()
+        return self._markdown_editor.text()

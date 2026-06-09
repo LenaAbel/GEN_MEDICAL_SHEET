@@ -180,6 +180,18 @@ EDIT_DIALOG_STYLE = """
 QDialog {
     background-color: #FFFFFF;
 }
+QPlainTextEdit {
+    background-color: #FFFFFF;
+    color: #333333;
+    border: 1px solid #DDDDDD;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    selection-background-color: #1f80c2;
+}
+QPlainTextEdit:focus {
+    border: 1px solid #1f80c2;
+}
 QTextEdit {
     background-color: #FFFFFF;
     color: #333333;
@@ -191,6 +203,20 @@ QTextEdit {
 }
 QTextEdit:focus {
     border: 1px solid #1f80c2;
+}
+QTextBrowser {
+    background-color: #FCFCFC;
+    color: #333333;
+    border: 1px solid #DDDDDD;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+}
+QSplitter::handle {
+    background-color: #E9E9E9;
+    margin-left: 4px;
+    margin-right: 4px;
+    border-radius: 3px;
 }
 """
 

@@ -15,6 +15,25 @@ MARKDOWN_EXTENSIONS = [
 ]
 
 
+def markdown_to_html(text: str) -> str:
+    """Convert markdown text into styled HTML."""
+    html = markdown.markdown(text, extensions=MARKDOWN_EXTENSIONS)
+    return _wrap_html_styles(html)
+
+
+def _wrap_html_styles(html: str) -> str:
+    """Add inline styles for code blocks and other elements."""
+    html = html.replace(
+        '<code>',
+        '<code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-family: monospace;">'
+    )
+    html = html.replace(
+        '<pre>',
+        '<pre style="background-color: #f4f4f4; padding: 10px; border-radius: 6px; font-family: monospace; overflow-x: auto;">'
+    )
+    return html
+
+
 class Markdown(QLabel):
     """QLabel that converts markdown text to HTML for display."""
 
@@ -37,21 +56,4 @@ class Markdown(QLabel):
 
     def set_markdown(self, text: str) -> None:
         """Convert markdown to HTML and display."""
-        html = markdown.markdown(text, extensions=MARKDOWN_EXTENSIONS)
-        styled_html = self._wrap_with_styles(html)
-        self.setText(styled_html)
-
-    # ==================== STYLING ====================
-
-    def _wrap_with_styles(self, html: str) -> str:
-        """Add inline styles for code blocks and other elements."""
-        # Style code blocks
-        html = html.replace(
-            '<code>',
-            '<code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-family: monospace;">'
-        )
-        html = html.replace(
-            '<pre>',
-            '<pre style="background-color: #f4f4f4; padding: 10px; border-radius: 6px; font-family: monospace; overflow-x: auto;">'
-        )
-        return html
+        self.setText(markdown_to_html(text))
