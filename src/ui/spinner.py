@@ -11,14 +11,14 @@ from ui.styles import SPINNER_COLOR, SPINNER_SIZE, SPINNER_LINE_WIDTH
 class LoadingSpinner(QWidget):
     """Animated circular loading spinner."""
 
-    def __init__(self, parent: QWidget = None, color: QColor = None) -> None:
+    def __init__(self, parent: QWidget = None, color: QColor = None, size: int | None = None) -> None:
         super().__init__(parent)
         self._angle = 0
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._rotate)
         self._color = color or SPINNER_COLOR
         self._line_width = SPINNER_LINE_WIDTH
-        self._size = SPINNER_SIZE
+        self._size = size or SPINNER_SIZE
         
         self.setFixedSize(self._size, self._size)
         # Start hidden, show when spinning
@@ -39,6 +39,12 @@ class LoadingSpinner(QWidget):
     def set_color(self, color: QColor) -> None:
         """Set spinner color."""
         self._color = color
+
+    def set_size(self, size: int) -> None:
+        """Update spinner diameter for responsive layouts."""
+        self._size = size
+        self.setFixedSize(size, size)
+        self.updateGeometry()
 
     def _rotate(self) -> None:
         """Increment angle and trigger repaint."""

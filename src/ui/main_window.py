@@ -15,14 +15,14 @@ from ui.styles import (
 from services.mistral_service import MistralService
 from services.mistral_request_thread import MistralRequestThread
 from models.message import Role
+from ui.responsive import main_window_metrics
 
 
 # ==== CONSTANTS ====
 WINDOW_TITLE = "Générateur de Fiche Médicale - CHU Besançon"
-WINDOW_MIN_SIZE = (900, 700)
+WINDOW_MIN_SIZE = (760, 560)
 INPUT_MAX_HEIGHT = 100
 LOGO_HEIGHT = 40
-HEADER_HEIGHT = 60
 SEND_BUTTON_SIZE = 36
 
 ASSETS_DIR = Path(__file__).parent / "img"
@@ -63,32 +63,32 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self._create_header())
         main_layout.addWidget(self._create_chat_area(), stretch=1)
         main_layout.addWidget(self._create_input_area())
+        self._apply_responsive_layout(self.width())
 
     # ==================== HEADER SECTION ====================
 
     def _create_header(self) -> QWidget:
         """Create header with CHU logo."""
-        header = QWidget()
-        header.setStyleSheet(HEADER_STYLE)
-        header.setFixedHeight(HEADER_HEIGHT)
+        self._header = QWidget()
+        self._header.setStyleSheet(HEADER_STYLE)
         
-        layout = QHBoxLayout(header)
+        layout = QHBoxLayout(self._header)
         layout.setContentsMargins(15, 5, 15, 5)
         
         # Logo on left
-        logo_label = QLabel()
-        logo_label.setStyleSheet(LOGO_STYLE)
+        self._logo_label = QLabel()
+        self._logo_label.setStyleSheet(LOGO_STYLE)
         if LOGO_PATH.exists():
             pixmap = QPixmap(str(LOGO_PATH))
             scaled = pixmap.scaledToHeight(LOGO_HEIGHT, Qt.SmoothTransformation)
-            logo_label.setPixmap(scaled)
+            self._logo_label.setPixmap(scaled)
         else:
-            logo_label.setText("CHU")
+            self._logo_label.setText("CHU")
         
-        layout.addWidget(logo_label)
+        layout.addWidget(self._logo_label)
         layout.addStretch()
         
-        return header
+        return self._header
 
     # ==================== CHAT SECTION ====================
 
@@ -101,23 +101,24 @@ class MainWindow(QMainWindow):
 
     def _create_input_area(self) -> QWidget:
         """Create message input area with spinner, text field and send button."""
-        container = QWidget()
+        self._input_container = QWidget()
         
-        main_layout = QVBoxLayout(container)
+        main_layout = QVBoxLayout(self._input_container)
         main_layout.setContentsMargins(60, 15, 60, 20)
         main_layout.setSpacing(8)
         
         # Disclaimer text
-        disclaimer = QLabel("⚠ L'IA peut halluciner. Vérifiez toujours les informations importantes.")
-        disclaimer.setStyleSheet(DISCLAIMER_STYLE)
-        main_layout.addWidget(disclaimer)
+        self._disclaimer = QLabel("⚠ L'IA peut halluciner. Vérifiez toujours les informations importantes.")
+        self._disclaimer.setWordWrap(True)
+        self._disclaimer.setStyleSheet(DISCLAIMER_STYLE)
+        main_layout.addWidget(self._disclaimer)
         
         # Input controls layout
         layout = QHBoxLayout()
         layout.setSpacing(12)
         
         # Loading spinner
-        self._spinner = LoadingSpinner(container)
+        self._spinner = LoadingSpinner(self._input_container)
         layout.addWidget(self._spinner)
         
         # Input text area for user messages
@@ -142,8 +143,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(self._send_button)
         
         main_layout.addLayout(layout)
+        self._apply_responsive_layout(self.width())
         
-        return container
+        return self._input_container
 
     # ==================== EVENT HANDLERS ====================
 
@@ -197,3 +199,40 @@ class MainWindow(QMainWindow):
             self._request_thread.error_occurred.disconnect(self._on_error)
             self._request_thread.finished.disconnect(self._on_thread_finished)
             self._request_thread = None
+
+    def resizeEvent(self, event) -> None:
+        """Keep the main view proportions comfortable as the window changes."""
+        super().resizeEvent(event)
+        self._apply_responsive_layout(event.size().width())
+
+    def _apply_responsive_layout(self, width: int) -> None:
+        """Update the main window spacing and control sizes for the current width."""
+        metrics = main_window_metrics(width)
+
+        if hasattr(self, "_header"):
+            self._header.setMinimumHeight(metrics.header_height)
+            header_layout = self._header.layout()
+            if header_layout is not None:
+                header_layout.setContentsMargins(*metrics.header_margins)
+
+        if hasattr(self, "_logo_label") and LOGO_PATH.exists():
+            pixmap = QPixmap(str(LOGO_PATH))
+            self._logo_label.setPixmap(pixmap.scaledToHeight(metrics.logo_height, Qt.SmoothTransformation))
+
+        if hasattr(self, "_input_container"):
+            input_layout = self._input_container.layout()
+            if input_layout is not None:
+                input_layout.setContentsMargins(*metrics.input_margins)
+                input_layout.setSpacing(metrics.input_spacing)
+
+        if hasattr(self, "_disclaimer"):
+            self._disclaimer.setWordWrap(True)
+
+        if hasattr(self, "_input_field"):
+            self._input_field.setMaximumHeight(metrics.input_max_height)
+
+        if hasattr(self, "_send_button"):
+            self._send_button.setFixedSize(metrics.send_button_size, metrics.send_button_size)
+
+        if hasattr(self, "_spinner"):
+            self._spinner.set_size(metrics.spinner_size)

@@ -68,7 +68,6 @@ USER_BUBBLE_STYLE = """
 QFrame {
     background-color: #1f80c2;
     border: none;
-    margin: 8px 20px 8px 100px;
     padding: 12px 16px;
     border-radius: 12px;
 }
@@ -86,7 +85,6 @@ ASSISTANT_BUBBLE_STYLE = """
 QFrame {
     background-color: #F0F0F0;
     border: none;
-    margin: 8px 100px 8px 20px;
     padding: 12px 16px;
     border-radius: 12px;
 }
@@ -156,6 +154,25 @@ QPushButton {
             QPushButton:hover {
                 background-color: #1568a3;
             }
+"""
+
+# ==================== EDIT DIALOG ====================
+EDIT_DIALOG_STYLE = """
+QDialog {
+    background-color: #FFFFFF;
+}
+QTextEdit {
+    background-color: #FFFFFF;
+    color: #333333;
+    border: 1px solid #DDDDDD;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    selection-background-color: #1f80c2;
+}
+QTextEdit:focus {
+    border: 1px solid #1f80c2;
+}
 """
 
 # ==================== DISCLAIMER ====================

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QScrollArea, QVBoxLayout, QHBoxLayout, QWidget, QFrame, QPushButton, QDialog, QTextEdit, QFileDialog
+    QScrollArea, QVBoxLayout, QHBoxLayout, QWidget, QFrame, QPushButton, QFileDialog, QDialog
 )
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextDocument
@@ -7,6 +7,8 @@ from PySide6.QtPrintSupport import QPrinter
 import markdown
 from models.message import Role
 from ui.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE, EDIT_BUTTON_STYLE
+from ui.edit_message_dialog import EditMessageDialog
+from ui.responsive import apply_chat_responsive_layout, insert_chat_bubble, register_chat_bubble
 from ui.markdown import Markdown
 
 
@@ -15,6 +17,7 @@ class ChatWidget(QScrollArea):
 
     def __init__(self) -> None:
         super().__init__()
+        self._bubbles: list[tuple[QFrame, Role]] = []
         self._setup_scroll_area()
         self._setup_message_container()
         self._streaming_label: Markdown | None = None
@@ -36,15 +39,16 @@ class ChatWidget(QScrollArea):
         self._layout = QVBoxLayout(self._container)
         self._layout.addStretch()
         self._layout.setSpacing(4)
-        self._layout.setContentsMargins(0, 20, 0, 20)
         self.setWidget(self._container)
+        apply_chat_responsive_layout(self, self._layout, self._bubbles)
 
     # ==================== PUBLIC METHODS ====================
 
     def add_message(self, text: str, role: Role) -> None:
         """Add a complete message bubble to the chat."""
         bubble = self._create_bubble(text, role)
-        self._insert_bubble(bubble)
+        self._register_bubble(bubble, role)
+        self._insert_bubble(bubble, role)
         QTimer.singleShot(10, self._scroll_to_bottom)
 
     def start_streaming_message(self) -> None:
@@ -63,7 +67,8 @@ class ChatWidget(QScrollArea):
         self._streaming_text = ""
         self._message_counter += 1
         self._last_assistant_message_id = self._message_counter
-        self._insert_bubble(bubble)
+        self._register_bubble(bubble, Role.ASSISTANT)
+        self._insert_bubble(bubble, Role.ASSISTANT)
 
     def append_streaming_chunk(self, chunk: str) -> None:
         """Append text chunk to streaming bubble (typewriter effect)."""
@@ -87,6 +92,7 @@ class ChatWidget(QScrollArea):
         """Add edit button under an AI message bubble."""
         layout = bubble.layout()
         button_row = QHBoxLayout()
+        button_row.setContentsMargins(0, 8, 0, 0)
         
         edit_button = QPushButton("✏ Éditer")
         edit_button.setStyleSheet(EDIT_BUTTON_STYLE)
@@ -108,43 +114,18 @@ class ChatWidget(QScrollArea):
         pdf_button.clicked.connect(on_pdf_clicked)
         button_row.addWidget(edit_button)
         button_row.addWidget(pdf_button)
+        button_row.addStretch()
         layout.addLayout(button_row)
 
     def _open_edit_dialog(self, message_id: int, original_text: str, bubble: QFrame) -> None:
         """Open dialog to edit AI message."""
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Éditer le message")
-        dialog.setGeometry(200, 200, 600, 300)
-        
-        layout = QVBoxLayout(dialog)
-        
-        text_edit = QTextEdit()
         current_text = self._edited_messages.get(message_id, original_text)
-        text_edit.setPlainText(current_text)
-        layout.addWidget(text_edit)
-        
-        button_layout = QVBoxLayout()
-        
-        save_button = QPushButton("Enregistrer")
-        cancel_button = QPushButton("Annuler")
-        
-        def on_save() -> None:
-            edited_text = text_edit.toPlainText()
+        dialog = EditMessageDialog(self, current_text)
+
+        if dialog.exec() == QDialog.Accepted:
+            edited_text = dialog.edited_text()
             self._edited_messages[message_id] = edited_text
             self._update_message_in_bubble(bubble, edited_text)
-            dialog.accept()
-        
-        def on_cancel() -> None:
-            dialog.reject()
-        
-        save_button.clicked.connect(on_save)
-        cancel_button.clicked.connect(on_cancel)
-        
-        button_layout.addWidget(save_button)
-        button_layout.addWidget(cancel_button)
-        layout.addLayout(button_layout)
-        
-        dialog.exec()
 
     def _export_message_as_pdf(self, message_id: int, original_text: str) -> None:
         """Export the latest version of an AI message to a PDF file."""
@@ -206,14 +187,22 @@ class ChatWidget(QScrollArea):
             bubble.setStyleSheet(ASSISTANT_BUBBLE_STYLE)
             label.setAlignment(Qt.AlignLeft)
 
+    def _register_bubble(self, bubble: QFrame, role: Role) -> None:
+        """Track bubbles so their margins can adapt to the current width."""
+        register_chat_bubble(self, self._layout, self._bubbles, bubble, role)
+
     # ==================== LAYOUT MANAGEMENT ====================
 
-    def _insert_bubble(self, bubble: QFrame) -> None:
+    def _insert_bubble(self, bubble: QFrame, role: Role) -> None:
         """Insert bubble above the stretch spacer."""
-        insert_position = self._layout.count() - 1
-        self._layout.insertWidget(insert_position, bubble)
+        insert_chat_bubble(self._layout, bubble, role)
 
     def _scroll_to_bottom(self) -> None:
         """Scroll to show latest message."""
         scrollbar = self.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
+
+    def resizeEvent(self, event) -> None:
+        """Adjust bubble margins when the viewport width changes."""
+        super().resizeEvent(event)
+        apply_chat_responsive_layout(self, self._layout, self._bubbles)
