@@ -2,8 +2,10 @@
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
+    QGraphicsOpacityEffect,
     QVBoxLayout,
 )
+from PySide6.QtCore import Qt
 
 from ui.responsive import edit_dialog_size_for_parent
 from ui.styles import EDIT_BUTTON_STYLE, EDIT_DIALOG_STYLE
@@ -16,6 +18,9 @@ class EditMessageDialog(QDialog):
     def __init__(self, parent=None, initial_text: str = "") -> None:
         super().__init__(parent)
         self._initial_text = initial_text
+        self._parent_widget = parent
+        self._parent_previous_effect = None
+        self._parent_effect_applied = False
         self._setup_window()
         self._setup_ui()
         self._apply_responsive_layout()
@@ -25,7 +30,7 @@ class EditMessageDialog(QDialog):
     def _setup_window(self) -> None:
         """Configure window flags and the initial size."""
         self.setWindowTitle("Éditer le message")
-        self.setModal(True)
+        self.setWindowModality(Qt.ApplicationModal)
         self.setSizeGripEnabled(True)
         self.setStyleSheet(EDIT_DIALOG_STYLE)
 
@@ -54,6 +59,11 @@ class EditMessageDialog(QDialog):
         self._button_box.rejected.connect(self.reject)
         layout.addWidget(self._button_box)
 
+    def showEvent(self, event) -> None:
+        """Dim the parent window while the dialog is visible."""
+        super().showEvent(event)
+        self._dim_parent_window()
+
     # ==================== RESPONSIVENESS ====================
 
     def _apply_responsive_layout(self) -> None:
@@ -77,6 +87,36 @@ class EditMessageDialog(QDialog):
         """Update spacing when the dialog is resized."""
         super().resizeEvent(event)
         self._apply_responsive_layout()
+
+    def closeEvent(self, event) -> None:
+        """Restore the parent window appearance when the dialog closes."""
+        self._restore_parent_window()
+        super().closeEvent(event)
+
+    def done(self, result: int) -> None:
+        """Restore the parent window appearance for accept/reject paths."""
+        self._restore_parent_window()
+        super().done(result)
+
+    def _dim_parent_window(self) -> None:
+        """Apply a subtle opacity effect to the parent window."""
+        if self._parent_widget is None or self._parent_effect_applied:
+            return
+
+        self._parent_previous_effect = self._parent_widget.graphicsEffect()
+        opacity_effect = QGraphicsOpacityEffect(self._parent_widget)
+        opacity_effect.setOpacity(0.35)
+        self._parent_widget.setGraphicsEffect(opacity_effect)
+        self._parent_effect_applied = True
+
+    def _restore_parent_window(self) -> None:
+        """Restore the parent's original graphics effect and enabled state."""
+        if self._parent_widget is None or not self._parent_effect_applied:
+            return
+
+        self._parent_widget.setGraphicsEffect(self._parent_previous_effect)
+        self._parent_previous_effect = None
+        self._parent_effect_applied = False
 
     # ==================== PUBLIC API ====================
 
