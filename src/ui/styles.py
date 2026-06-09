@@ -218,6 +218,27 @@ QSplitter::handle {
     margin-right: 4px;
     border-radius: 3px;
 }
+
+QToolBar {
+    background: #FFFFFF;
+    border: none;
+    spacing: 6px;
+}
+QToolButton {
+    background-color: #F7FAFC;
+    color: #1f80c2;
+    border: 1px solid #D9E7F2;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+QToolButton:hover {
+    background-color: #EEF7FC;
+}
+QToolButton:pressed {
+    background-color: #DCEEF9;
+}
 """
 
 # ==================== DISCLAIMER ====================

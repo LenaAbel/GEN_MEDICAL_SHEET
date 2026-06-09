@@ -152,9 +152,18 @@ def apply_chat_responsive_layout(
 
 
 def dialog_size_for_parent(parent_width: int | None, parent_height: int | None) -> tuple[int, int]:
-    """Choose a sensible dialog size relative to the parent window."""
+    """Compute a compact responsive size for standard dialogs."""
     width = parent_width or 900
     height = parent_height or 700
     dialog_width = max(520, min(900, int(width * 0.72)))
     dialog_height = max(360, min(640, int(height * 0.62)))
+    return dialog_width, dialog_height
+
+
+def edit_dialog_size_for_parent(parent_width: int | None, parent_height: int | None) -> tuple[int, int]:
+    """Compute a larger responsive size for the markdown editing dialog."""
+    width = parent_width or 900
+    height = parent_height or 700
+    dialog_width = max(760, min(1200, int(width * 0.88)))
+    dialog_height = max(560, min(920, int(height * 0.82)))
     return dialog_width, dialog_height

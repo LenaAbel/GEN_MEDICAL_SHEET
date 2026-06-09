@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from ui.responsive import dialog_size_for_parent
+from ui.responsive import edit_dialog_size_for_parent
 from ui.styles import EDIT_BUTTON_STYLE, EDIT_DIALOG_STYLE
 from ui.markdown_editor import MarkdownEditorWidget
 
@@ -32,9 +32,9 @@ class EditMessageDialog(QDialog):
         parent = self.parentWidget()
         parent_width = parent.width() if parent else None
         parent_height = parent.height() if parent else None
-        dialog_width, dialog_height = dialog_size_for_parent(parent_width, parent_height)
+        dialog_width, dialog_height = edit_dialog_size_for_parent(parent_width, parent_height)
         self.resize(dialog_width, dialog_height)
-        self.setMinimumSize(480, 320)
+        self.setMinimumSize(680, 500)
 
     def _setup_ui(self) -> None:
         """Build dialog contents."""
