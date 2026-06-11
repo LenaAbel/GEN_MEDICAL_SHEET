@@ -215,6 +215,7 @@ RÈGLES SUPPLÉMENTAIRES POUR LA SORTIE:
 - Si un champ est absent, vide, "???" ou "NE", ne l'inclus pas dans la fiche.
 - N'écris pas de ligne comme "Docteur : XXX" sauf si le nom du médecin est explicitement présent dans les données.
 - Ne reformule pas un champ manquant par une autre information inventée.
+- Les sections doivent divisés par ---
 - Il est important que la fiche suive strictement la structure et les règles de rédaction pour garantir la clarté et la pertinence des informations fournies au patient.
 - L'encadré final doit être la dernière ligne de la fiche, sans aucune information après. La ligne est copié comme donné. Le num2ro de téléphone n'est pas changé, il doit être recopié tel quel.
 

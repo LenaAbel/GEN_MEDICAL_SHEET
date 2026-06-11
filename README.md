@@ -18,7 +18,7 @@ pip install -r requirements.txt
 
 Run the script :
 
-python src/main.py
+python3 src/main.py
 
 https://www.freecodecamp.org/news/build-a-local-ai/#heading-local-ai-power-with-qwen-3-and-ollama
 

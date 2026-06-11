@@ -164,6 +164,6 @@ def edit_dialog_size_for_parent(parent_width: int | None, parent_height: int | N
     """Compute a larger responsive size for the markdown editing dialog."""
     width = parent_width or 900
     height = parent_height or 700
-    dialog_width = max(760, min(1200, int(width * 0.88)))
-    dialog_height = max(560, min(920, int(height * 0.82)))
+    dialog_width = max(820, min(1280, int(width * 0.94)))
+    dialog_height = max(620, min(980, int(height * 0.88)))
     return dialog_width, dialog_height
