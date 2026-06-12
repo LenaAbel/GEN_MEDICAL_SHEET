@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 
 from PySide6.QtCore import QElapsedTimer, QTimer, Qt, QUrl
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QPixmap
 from PySide6.QtMultimedia import (
     QAudioInput,
     QMediaCaptureSession,
@@ -13,16 +13,14 @@ from PySide6.QtMultimedia import (
     QMediaRecorder,
 )
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTextEdit, QPushButton, QMessageBox, QLabel
+    QMainWindow, QWidget, QVBoxLayout, QMessageBox
 )
 
 from ui.chat_area import ChatArea
 from ui.header_widget import HeaderWidget, LOGO_PATH
-from ui.spinner import LoadingSpinner
+from ui.input_widget import InputWidget
 from ui.styles import (
-    MAIN_WINDOW_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE,
-    DISCLAIMER_STYLE, RECORDING_BUTTON_STYLE, RECORDING_TIMER_STYLE,
+    MAIN_WINDOW_STYLE, RECORDING_BUTTON_STYLE, RECORDING_TIMER_STYLE,
     TRANSCRIPTION_BUTTON_STYLE, TRANSCRIPTION_TIMER_STYLE
 )
 from services.mistral_service import MistralService
@@ -40,11 +38,6 @@ from ui.responsive import main_window_metrics
 # ==== CONSTANTS ====
 WINDOW_TITLE = "Générateur de Fiche Médicale - CHU Besançon"
 WINDOW_MIN_SIZE = (760, 560)
-INPUT_MAX_HEIGHT = 100
-SEND_BUTTON_SIZE = 36
-
-ASSETS_DIR = Path(__file__).parent / "img"
-SEND_ICON_PATH = ASSETS_DIR / "send_icon.svg"
 
 
 class MainWindow(QMainWindow):
@@ -123,62 +116,22 @@ class MainWindow(QMainWindow):
             self._start_new_conversation
         )
         main_layout.addWidget(self._header)
+
         # CHAT AREA with scrollable conversation and message bubbles
         self._chat_area = ChatArea()
         self._chat_widget = self._chat_area.chat_widget
         main_layout.addWidget(self._chat_area, stretch=1)
-        main_layout.addWidget(self._create_input_area())
+        
+        # INPUT with AI disclaimer, text field, send button, and loading spinner
+        self._input_widget = InputWidget()
+        self._input_container = self._input_widget._input_container
+        self._input_field = self._input_widget._input_field
+        self._send_button = self._input_widget._send_button
+        self._spinner = self._input_widget._spinner
+        self._disclaimer = self._input_widget._disclaimer
+        self._input_widget._send_button.clicked.connect(self._on_send_clicked)
+        main_layout.addWidget(self._input_widget)
         self._apply_responsive_layout(self.width())
-
-    # ==================== INPUT SECTION ====================
-
-    def _create_input_area(self) -> QWidget:
-        """Create message input area with spinner, text field and send button."""
-        self._input_container = QWidget()
-        
-        main_layout = QVBoxLayout(self._input_container)
-        main_layout.setContentsMargins(60, 15, 60, 20)
-        main_layout.setSpacing(8)
-        
-        # Disclaimer text
-        self._disclaimer = QLabel("⚠ L'IA peut halluciner. Vérifiez toujours les informations importantes.")
-        self._disclaimer.setWordWrap(True)
-        self._disclaimer.setStyleSheet(DISCLAIMER_STYLE)
-        main_layout.addWidget(self._disclaimer)
-        
-        # Input controls layout
-        layout = QHBoxLayout()
-        layout.setSpacing(12)
-        
-        # Loading spinner
-        self._spinner = LoadingSpinner(self._input_container)
-        layout.addWidget(self._spinner)
-        
-        # Input text area for user messages
-        self._input_field = QTextEdit()
-        self._input_field.setMaximumHeight(INPUT_MAX_HEIGHT)
-        self._input_field.setPlaceholderText("Envoyer votre message...")
-        self._input_field.setStyleSheet(INPUT_FIELD_STYLE)
-        
-        # Send button with icon
-        self._send_button = QPushButton()
-        self._send_button.setStyleSheet(SEND_BUTTON_STYLE)
-        self._send_button.setCursor(Qt.PointingHandCursor)
-        self._send_button.setFixedSize(SEND_BUTTON_SIZE, SEND_BUTTON_SIZE)
-
-        if SEND_ICON_PATH.exists():
-            self._send_button.setIcon(QIcon(str(SEND_ICON_PATH)))
-        else:
-            self._send_button.setText("→")
-        self._send_button.clicked.connect(self._on_send_clicked)
-        
-        layout.addWidget(self._input_field)
-        layout.addWidget(self._send_button)
-        
-        main_layout.addLayout(layout)
-        self._apply_responsive_layout(self.width())
-        
-        return self._input_container
 
     # ==================== EVENT HANDLERS ====================
 
