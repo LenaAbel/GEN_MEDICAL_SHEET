@@ -18,12 +18,12 @@ from PySide6.QtWidgets import (
 )
 
 from ui.chat_widget import ChatWidget
+from ui.header_widget import HeaderWidget, LOGO_PATH
 from ui.spinner import LoadingSpinner
 from ui.styles import (
     MAIN_WINDOW_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE,
-    HEADER_STYLE, LOGO_STYLE, DISCLAIMER_STYLE, NEW_CONVERSATION_BUTTON_STYLE,
-    RECORDING_BUTTON_STYLE, RECORDING_TIMER_STYLE, TRANSCRIPTION_BUTTON_STYLE,
-    TRANSCRIPTION_TIMER_STYLE
+    DISCLAIMER_STYLE, RECORDING_BUTTON_STYLE, RECORDING_TIMER_STYLE,
+    TRANSCRIPTION_BUTTON_STYLE, TRANSCRIPTION_TIMER_STYLE
 )
 from services.mistral_service import MistralService
 from services.mistral_request_thread import MistralRequestThread
@@ -41,11 +41,9 @@ from ui.responsive import main_window_metrics
 WINDOW_TITLE = "Générateur de Fiche Médicale - CHU Besançon"
 WINDOW_MIN_SIZE = (760, 560)
 INPUT_MAX_HEIGHT = 100
-LOGO_HEIGHT = 40
 SEND_BUTTON_SIZE = 36
 
 ASSETS_DIR = Path(__file__).parent / "img"
-LOGO_PATH = ASSETS_DIR / "chu_logo.svg"
 SEND_ICON_PATH = ASSETS_DIR / "send_icon.svg"
 
 
@@ -112,57 +110,22 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(0)
 
         # UI sections
-        main_layout.addWidget(self._create_header())
+        self._header = HeaderWidget()
+        self._logo_label = self._header.logo_label
+        self._audio_spinner = self._header.audio_spinner
+        self._transcription_timer_label = self._header.transcription_timer_label
+        self._transcription_button = self._header.transcription_button
+        self._new_conversation_button = self._header.new_conversation_button
+        self._header.transcription_button.clicked.connect(
+            self._on_transcription_clicked
+        )
+        self._header.new_conversation_button.clicked.connect(
+            self._start_new_conversation
+        )
+        main_layout.addWidget(self._header)
         main_layout.addWidget(self._create_chat_area(), stretch=1)
         main_layout.addWidget(self._create_input_area())
         self._apply_responsive_layout(self.width())
-
-    # ==================== HEADER SECTION ====================
-
-    def _create_header(self) -> QWidget:
-        """Create header with CHU logo."""
-        self._header = QWidget()
-        self._header.setStyleSheet(HEADER_STYLE)
-        
-        layout = QHBoxLayout(self._header)
-        layout.setContentsMargins(15, 5, 15, 5)
-        
-        # Logo on left
-        self._logo_label = QLabel()
-        self._logo_label.setStyleSheet(LOGO_STYLE)
-        if LOGO_PATH.exists():
-            pixmap = QPixmap(str(LOGO_PATH))
-            scaled = pixmap.scaledToHeight(LOGO_HEIGHT, Qt.SmoothTransformation)
-            self._logo_label.setPixmap(scaled)
-        else:
-            self._logo_label.setText("CHU")
-        
-        layout.addWidget(self._logo_label)
-        layout.addStretch()
-
-        self._audio_spinner = LoadingSpinner(self._header, size=20)
-        layout.addWidget(self._audio_spinner)
-
-        self._transcription_timer_label = QLabel("Enregistrement 00:00")
-        self._transcription_timer_label.setStyleSheet(TRANSCRIPTION_TIMER_STYLE)
-        self._transcription_timer_label.hide()
-        layout.addWidget(self._transcription_timer_label)
-
-        self._transcription_button = QPushButton("Enregistrer")
-        self._transcription_button.setToolTip("Démarrer un enregistrement audio")
-        self._transcription_button.setCursor(Qt.PointingHandCursor)
-        self._transcription_button.setStyleSheet(TRANSCRIPTION_BUTTON_STYLE)
-        self._transcription_button.clicked.connect(self._on_transcription_clicked)
-        layout.addWidget(self._transcription_button)
-
-        self._new_conversation_button = QPushButton("+")
-        self._new_conversation_button.setToolTip("Nouvelle conversation")
-        self._new_conversation_button.setCursor(Qt.PointingHandCursor)
-        self._new_conversation_button.setStyleSheet(NEW_CONVERSATION_BUTTON_STYLE)
-        self._new_conversation_button.clicked.connect(self._start_new_conversation)
-        layout.addWidget(self._new_conversation_button)
-        
-        return self._header
 
     # ==================== CHAT SECTION ====================
 

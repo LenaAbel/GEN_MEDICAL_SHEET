@@ -7,3 +7,7 @@ venv/
 src/models/__pycache__/
 src/services/__pycache__/
 src/ui/__pycache__/
+./__pycache__/
+.codex
+.vscode/
+.agents
