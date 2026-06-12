@@ -175,6 +175,69 @@ QPushButton:pressed {
 }
 """
 
+TRANSCRIPTION_BUTTON_STYLE = """
+QPushButton {
+    background-color: #EEF7FC;
+    color: #1568A3;
+    border: 1px solid #BBDCF0;
+    border-radius: 16px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+}
+QPushButton:hover {
+    background-color: #DCEEF9;
+}
+QPushButton:pressed {
+    background-color: #C9E4F5;
+}
+QPushButton:disabled {
+    background-color: #F2F2F2;
+    color: #999999;
+    border-color: #DDDDDD;
+}
+"""
+
+TRANSCRIPTION_TIMER_STYLE = """
+QLabel {
+    color: #1568A3;
+    background-color: transparent;
+    border: none;
+    padding: 2px 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+"""
+
+RECORDING_BUTTON_STYLE = """
+QPushButton {
+    background-color: #FFF1F0;
+    color: #A62B24;
+    border: 1px solid #E7AAA6;
+    border-radius: 16px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+}
+QPushButton:hover {
+    background-color: #FFE1DF;
+}
+QPushButton:pressed {
+    background-color: #F8CBC8;
+}
+"""
+
+RECORDING_TIMER_STYLE = """
+QLabel {
+    color: #A62B24;
+    background-color: transparent;
+    border: none;
+    padding: 2px 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+"""
+
 # ==================== EDIT DIALOG ====================
 EDIT_DIALOG_STYLE = """
 QDialog {

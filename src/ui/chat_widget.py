@@ -181,7 +181,7 @@ class ChatWidget(QScrollArea):
             if isinstance(widget, Markdown):
                 widget.set_markdown(new_text)
 
-    # ==================== BUBBLE CREATION ====================
+    # ==================== BUBBLE ====================
 
     def _create_bubble(self, text: str, role: Role) -> QFrame:
         """Create styled message bubble with markdown support."""
