@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QTextEdit, QPushButton, QMessageBox, QLabel
 )
 
-from ui.chat_widget import ChatWidget
+from ui.chat_area import ChatArea
 from ui.header_widget import HeaderWidget, LOGO_PATH
 from ui.spinner import LoadingSpinner
 from ui.styles import (
@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # UI sections
+        # HEADER
         self._header = HeaderWidget()
         self._logo_label = self._header.logo_label
         self._audio_spinner = self._header.audio_spinner
@@ -123,16 +123,12 @@ class MainWindow(QMainWindow):
             self._start_new_conversation
         )
         main_layout.addWidget(self._header)
-        main_layout.addWidget(self._create_chat_area(), stretch=1)
+        # CHAT AREA with scrollable conversation and message bubbles
+        self._chat_area = ChatArea()
+        self._chat_widget = self._chat_area.chat_widget
+        main_layout.addWidget(self._chat_area, stretch=1)
         main_layout.addWidget(self._create_input_area())
         self._apply_responsive_layout(self.width())
-
-    # ==================== CHAT SECTION ====================
-
-    def _create_chat_area(self) -> QWidget:
-        """Create scrollable chat display area."""
-        self._chat_widget = ChatWidget()
-        return self._chat_widget
 
     # ==================== INPUT SECTION ====================
 
