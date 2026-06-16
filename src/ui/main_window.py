@@ -13,8 +13,8 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QMessageBox
 )
 
+from constants import WINDOW_MIN_SIZE, WINDOW_TITLE
 from ui.chat_area import ChatArea
-from ui.constants import WINDOW_MIN_SIZE, WINDOW_TITLE
 from ui.header_widget import HeaderWidget, LOGO_PATH
 from ui.input_widget import InputWidget
 from ui.styles import (
@@ -101,10 +101,10 @@ class MainWindow(QMainWindow):
         self._transcription_timer_label = self._header.transcription_timer_label
         self._transcription_button = self._header.transcription_button
         self._new_conversation_button = self._header.new_conversation_button
-        self._header.transcription_button.clicked.connect(
+        self._header.transcription_toggled.connect(
             self._on_transcription_clicked
         )
-        self._header.new_conversation_button.clicked.connect(
+        self._header.new_conversation_requested.connect(
             self._start_new_conversation
         )
         main_layout.addWidget(self._header)
@@ -140,8 +140,6 @@ class MainWindow(QMainWindow):
                 "Aucun microphone n'est disponible sur cet appareil.",
             )
             return
-
-        self._audio_manager.setup()
 
         self._cleanup_recorded_audio()
         self._new_conversation_button.setEnabled(False)
@@ -376,6 +374,7 @@ class MainWindow(QMainWindow):
             self._audio_manager.stop()
         self._chat_controller.cancel()
         self._transcription_controller.cancel()
+        self._audio_manager.cleanup()
         self._audio_spinner.stop()
         self._cleanup_recorded_audio()
         super().closeEvent(event)
