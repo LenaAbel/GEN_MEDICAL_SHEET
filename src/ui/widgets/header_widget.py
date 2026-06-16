@@ -2,9 +2,9 @@ from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
 
-from ui.constants import ASSETS_DIR
-from ui.spinner import LoadingSpinner
-from ui.styles import (
+from config.constants import ASSETS_DIR
+from ui.widgets.spinner import LoadingSpinner
+from ui.style.styles import (
     HEADER_STYLE,
     LOGO_STYLE,
     NEW_CONVERSATION_BUTTON_STYLE,

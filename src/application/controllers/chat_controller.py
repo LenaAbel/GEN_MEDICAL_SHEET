@@ -1,7 +1,7 @@
 from PySide6.QtCore import QEvent, QObject, QThread, Signal
 
-from services.mistral_request_thread import MistralRequestThread
-from services.mistral_service import MistralService
+from infrastructure.workers.mistral_request_thread import MistralRequestThread
+from infrastructure.ai.mistral_service import MistralService
 
 
 class ChatController(QObject):

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QScrollArea, QVBoxLayout
 
-from models.message import Role
+from domain.models.message import Role
 
 
 @dataclass(frozen=True)

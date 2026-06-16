@@ -7,9 +7,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from ui.responsive import edit_dialog_size_for_parent
-from ui.styles import EDIT_BUTTON_STYLE, EDIT_DIALOG_STYLE
-from ui.markdown_editor import MarkdownEditorWidget
+from ui.style.responsive import edit_dialog_size_for_parent
+from ui.style.styles import EDIT_BUTTON_STYLE, EDIT_DIALOG_STYLE
+from ui.widgets.markdown_editor import MarkdownEditorWidget
 
 
 class EditMessageDialog(QDialog):

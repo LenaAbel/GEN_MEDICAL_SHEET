@@ -2,12 +2,12 @@ from pathlib import Path
 
 from PySide6.QtCore import QEvent, QObject, QThread, Signal
 
-from services.transcript_extraction_request_thread import (
+from infrastructure.workers.transcript_extraction_request_thread import (
     TranscriptExtractionRequestThread,
 )
-from services.transcript_extraction_service import TranscriptExtractionService
-from services.transcription_request_thread import TranscriptionRequestThread
-from services.transcription_service import TranscriptionService
+from infrastructure.ai.transcript_extraction_service import TranscriptExtractionService
+from infrastructure.workers.transcription_request_thread import TranscriptionRequestThread
+from infrastructure.ai.transcription_service import TranscriptionService
 
 
 class TranscriptionController(QObject):

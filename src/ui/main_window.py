@@ -13,19 +13,19 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QMessageBox
 )
 
-from constants import WINDOW_MIN_SIZE, WINDOW_TITLE
-from ui.chat_area import ChatArea
-from ui.header_widget import HeaderWidget, LOGO_PATH
-from ui.input_widget import InputWidget
-from ui.styles import (
+from config.constants import WINDOW_MIN_SIZE, WINDOW_TITLE
+from ui.widgets.chat_area import ChatArea
+from ui.widgets.header_widget import HeaderWidget, LOGO_PATH
+from ui.widgets.input_widget import InputWidget
+from ui.style.styles import (
     MAIN_WINDOW_STYLE, RECORDING_BUTTON_STYLE, RECORDING_TIMER_STYLE,
     TRANSCRIPTION_BUTTON_STYLE, TRANSCRIPTION_TIMER_STYLE
 )
-from controllers.chat_controller import ChatController
-from controllers.transcription_controller import TranscriptionController
-from services.audio_recorder_manager import AudioRecorderManager
-from models.message import Role
-from ui.responsive import main_window_metrics
+from application.controllers.chat_controller import ChatController
+from application.controllers.transcription_controller import TranscriptionController
+from infrastructure.audio.audio_recorder_manager import AudioRecorderManager
+from domain.models.message import Role
+from ui.style.responsive import main_window_metrics
 
 
 class MainWindow(QMainWindow):

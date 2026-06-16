@@ -4,7 +4,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from services.transcription_service import TranscriptionService
+from infrastructure.ai.transcription_service import TranscriptionService
 
 
 class TranscriptionRequestThread(QThread):

@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextCursor
 
-from ui.markdown import markdown_to_html
+from ui.widgets.markdown import markdown_to_html
 
 
 class MarkdownEditorWidget(QWidget):

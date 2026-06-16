@@ -4,12 +4,12 @@ test/mistral_test/prompt.txt
 mistral_test/venv/
 venv/
 
-src/models/__pycache__/
-src/services/__pycache__/
-src/ui/__pycache__/
-src/controllers/__pycache__/
-src/models/__pycache__/
-./__pycache__/
+# Python caches and bytecode
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
 .codex
 .vscode/
 .agents

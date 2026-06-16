@@ -5,11 +5,11 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QTextDocument
 from PySide6.QtPrintSupport import QPrinter
 import markdown
-from models.message import Role
-from ui.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE, EDIT_BUTTON_STYLE
-from ui.edit_message_dialog import EditMessageDialog
-from ui.responsive import apply_chat_responsive_layout, insert_chat_bubble, register_chat_bubble
-from ui.markdown import Markdown
+from domain.models.message import Role
+from ui.style.styles import CHAT_WIDGET_STYLE, USER_BUBBLE_STYLE, ASSISTANT_BUBBLE_STYLE, EDIT_BUTTON_STYLE
+from ui.dialogs.edit_message_dialog import EditMessageDialog
+from ui.style.responsive import apply_chat_responsive_layout, insert_chat_bubble, register_chat_bubble
+from ui.widgets.markdown import Markdown
 
 
 class ChatWidget(QScrollArea):

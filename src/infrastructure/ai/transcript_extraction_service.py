@@ -6,7 +6,7 @@ from typing import Any
 
 from mistralai import Mistral
 
-from models.prompts import TRANSCRIPTION_EXTRACTION_PROMPT
+from domain.models.prompts.prompts import TRANSCRIPTION_EXTRACTION_PROMPT
 
 
 API_KEY_VAR = "MISTRAL_API_KEY"

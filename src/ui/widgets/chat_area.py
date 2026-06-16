@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
-from models.message import Role
-from ui.chat_widget import ChatWidget
+from domain.models.message import Role
+from ui.widgets.chat_widget import ChatWidget
 
 
 class ChatArea(QWidget):

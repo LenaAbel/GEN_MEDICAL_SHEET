@@ -5,7 +5,7 @@ Logic for interacting with the Mistral AI API
 import os
 from typing import List, Dict, Generator
 from mistralai import Mistral
-from models.prompts import SYSTEM_PROMPT
+from domain.models.prompts.prompts import SYSTEM_PROMPT
 
 
 # ==== CONSTANTS ====

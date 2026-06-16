@@ -3,7 +3,7 @@ Background thread for Mistral API calls.
 Prevents UI freeze during network requests.
 """
 from PySide6.QtCore import QThread, Signal
-from services.mistral_service import MistralService
+from infrastructure.ai.mistral_service import MistralService
 
 
 class MistralRequestThread(QThread):

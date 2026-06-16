@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import QThread, Signal
 
-from services.transcript_extraction_service import TranscriptExtractionService
+from infrastructure.ai.transcript_extraction_service import TranscriptExtractionService
 
 
 class TranscriptExtractionRequestThread(QThread):

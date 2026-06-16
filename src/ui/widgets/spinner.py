@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, QTimer, QRectF
 from PySide6.QtGui import QPainter, QColor, QPen
 
-from ui.styles import SPINNER_COLOR, SPINNER_SIZE, SPINNER_LINE_WIDTH
+from ui.style.styles import SPINNER_COLOR, SPINNER_SIZE, SPINNER_LINE_WIDTH
 
 
 class LoadingSpinner(QWidget):

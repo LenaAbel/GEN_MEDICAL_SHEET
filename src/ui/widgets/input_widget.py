@@ -9,9 +9,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ui.spinner import LoadingSpinner
-from ui.constants import INPUT_MAX_HEIGHT, SEND_BUTTON_SIZE, SEND_ICON_PATH
-from ui.styles import DISCLAIMER_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE
+from config.constants import INPUT_MAX_HEIGHT, SEND_BUTTON_SIZE, SEND_ICON_PATH
+from ui.widgets.spinner import LoadingSpinner
+from ui.style.styles import DISCLAIMER_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE
 
 
 class InputWidget(QWidget):
