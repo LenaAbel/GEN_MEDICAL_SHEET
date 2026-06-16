@@ -1,4 +1,3 @@
-import json
 import tempfile
 import uuid
 from pathlib import Path
@@ -208,7 +207,6 @@ class MainWindow(QMainWindow):
 
     def _on_transcription_finished(self, transcript: str) -> None:
         """Automatically start extraction without displaying the raw transcript."""
-        print(f"[Transcription audio brute]\n{transcript}", flush=True)
         self._set_audio_processing_status("Extraction en cours...")
         self._start_extraction(transcript)
 
@@ -282,8 +280,6 @@ class MainWindow(QMainWindow):
 
     def _on_extraction_finished(self, extracted_data: object) -> None:
         """Attach structured JSON to chat context without exposing it in the chatbot."""
-        formatted_json = json.dumps(extracted_data, ensure_ascii=False, indent=2)
-        print(f"[Extraction audio JSON]\n{formatted_json}", flush=True)
         if isinstance(extracted_data, dict):
             self._chat_controller.set_audio_transcript_context(extracted_data)
             self._input_widget.show_audio_context_badge()
