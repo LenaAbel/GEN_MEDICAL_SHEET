@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -9,9 +10,19 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from config.constants import INPUT_MAX_HEIGHT, SEND_BUTTON_SIZE, SEND_ICON_PATH
+from config.constants import (
+    INPUT_MAX_HEIGHT,
+    RECORD_ICON_PATH,
+    SEND_BUTTON_SIZE,
+    SEND_ICON_PATH,
+)
 from ui.widgets.spinner import LoadingSpinner
-from ui.style.styles import DISCLAIMER_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE
+from ui.style.styles import (
+    AUDIO_CONTEXT_BADGE_STYLE,
+    DISCLAIMER_STYLE,
+    INPUT_FIELD_STYLE,
+    SEND_BUTTON_STYLE,
+)
 
 
 class InputWidget(QWidget):
@@ -30,6 +41,29 @@ class InputWidget(QWidget):
         self._disclaimer.setWordWrap(True)
         self._disclaimer.setStyleSheet(DISCLAIMER_STYLE)
         main_layout.addWidget(self._disclaimer)
+
+        self._audio_context_badge = QFrame()
+        self._audio_context_badge.setObjectName("audioContextBadge")
+        self._audio_context_badge.setStyleSheet(AUDIO_CONTEXT_BADGE_STYLE)
+        self._audio_context_badge.setVisible(False)
+        badge_layout = QHBoxLayout(self._audio_context_badge)
+        badge_layout.setContentsMargins(10, 6, 10, 6)
+        badge_layout.setSpacing(6)
+
+        self._audio_context_icon = QLabel()
+        self._audio_context_icon.setFixedSize(14, 14)
+        if RECORD_ICON_PATH.exists():
+            pixmap = QPixmap(str(RECORD_ICON_PATH))
+            self._audio_context_icon.setPixmap(
+                pixmap.scaled(14, 14, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            )
+        else:
+            self._audio_context_icon.setText("Audio")
+        badge_layout.addWidget(self._audio_context_icon)
+
+        self._audio_context_label = QLabel("Audio pré-op ajouté")
+        badge_layout.addWidget(self._audio_context_label)
+        main_layout.addWidget(self._audio_context_badge, alignment=Qt.AlignLeft)
 
         # Input controls layout
         layout = QHBoxLayout()
@@ -73,3 +107,11 @@ class InputWidget(QWidget):
         """Enable or disable the input field and send button."""
         self._input_field.setEnabled(enabled)
         self._send_button.setEnabled(enabled)
+
+    def show_audio_context_badge(self) -> None:
+        """Show that structured audio data is attached to the chat context."""
+        self._audio_context_badge.setVisible(True)
+
+    def hide_audio_context_badge(self) -> None:
+        """Hide the structured audio context indicator."""
+        self._audio_context_badge.setVisible(False)

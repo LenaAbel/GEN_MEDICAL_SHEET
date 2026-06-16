@@ -1,3 +1,5 @@
+from typing import Any
+
 from PySide6.QtCore import QEvent, QObject, QThread, Signal
 
 from infrastructure.workers.mistral_request_thread import MistralRequestThread
@@ -52,6 +54,14 @@ class ChatController(QObject):
     def clear_history(self) -> None:
         """Reset the chat service conversation history."""
         self._mistral_service.clear_history()
+
+    def set_audio_transcript_context(self, extracted_data: dict[str, Any]) -> None:
+        """Attach structured audio data to subsequent chat requests."""
+        self._mistral_service.set_audio_transcript_context(extracted_data)
+
+    def clear_audio_transcript_context(self) -> None:
+        """Remove structured audio data from subsequent chat requests."""
+        self._mistral_service.clear_audio_transcript_context()
 
     def cancel(self, wait: bool = True) -> None:
         """Cancel tracked chat workers and optionally wait for completion."""

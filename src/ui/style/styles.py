@@ -135,6 +135,23 @@ QPushButton:disabled {
 }
 """
 
+AUDIO_CONTEXT_BADGE_STYLE = """
+QFrame#audioContextBadge {
+    color: #1568A3;
+    background-color: #EEF7FC;
+    border: 1px solid #BBDCF0;
+    border-radius: 12px;
+}
+QFrame#audioContextBadge QLabel {
+    color: #1568A3;
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+    font-size: 12px;
+    font-weight: 600;
+}
+"""
+
 # ==================== SPINNER ====================
 
 SPINNER_COLOR = CHU_BLUE

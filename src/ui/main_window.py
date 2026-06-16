@@ -208,6 +208,7 @@ class MainWindow(QMainWindow):
 
     def _on_transcription_finished(self, transcript: str) -> None:
         """Automatically start extraction without displaying the raw transcript."""
+        print(f"[Transcription audio brute]\n{transcript}", flush=True)
         self._set_audio_processing_status("Extraction en cours...")
         self._start_extraction(transcript)
 
@@ -280,11 +281,13 @@ class MainWindow(QMainWindow):
         self._transcription_controller.start_extraction(transcript)
 
     def _on_extraction_finished(self, extracted_data: object) -> None:
-        """Print structured JSON for testing without exposing it in the chatbot."""
+        """Attach structured JSON to chat context without exposing it in the chatbot."""
         formatted_json = json.dumps(extracted_data, ensure_ascii=False, indent=2)
         print(f"[Extraction audio JSON]\n{formatted_json}", flush=True)
+        if isinstance(extracted_data, dict):
+            self._chat_controller.set_audio_transcript_context(extracted_data)
+            self._input_widget.show_audio_context_badge()
         self._audio_spinner.stop()
-        self._transcription_timer_label.setText("Extraction terminée")
 
     def _on_extraction_error(self, error_message: str) -> None:
         """Display a clear structured extraction error."""
@@ -366,6 +369,8 @@ class MainWindow(QMainWindow):
         self._input_field.clear()
         self._chat_widget.clear_conversation()
         self._chat_controller.clear_history()
+        self._chat_controller.clear_audio_transcript_context()
+        self._input_widget.hide_audio_context_badge()
         self._audio_spinner.stop()
         self._transcription_timer_label.hide()
         self._cleanup_recorded_audio()
