@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -12,14 +10,8 @@ from PySide6.QtWidgets import (
 )
 
 from ui.spinner import LoadingSpinner
+from ui.constants import INPUT_MAX_HEIGHT, SEND_BUTTON_SIZE, SEND_ICON_PATH
 from ui.styles import DISCLAIMER_STYLE, INPUT_FIELD_STYLE, SEND_BUTTON_STYLE
-
-
-INPUT_MAX_HEIGHT = 100
-SEND_BUTTON_SIZE = 36
-
-ASSETS_DIR = Path(__file__).parent / "img"
-SEND_ICON_PATH = ASSETS_DIR / "send_icon.svg"
 
 
 class InputWidget(QWidget):

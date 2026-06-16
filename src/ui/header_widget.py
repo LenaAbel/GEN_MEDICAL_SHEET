@@ -1,9 +1,8 @@
-from pathlib import Path
-
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
 
+from ui.constants import ASSETS_DIR
 from ui.spinner import LoadingSpinner
 from ui.styles import (
     HEADER_STYLE,
@@ -16,7 +15,6 @@ from ui.styles import (
 
 LOGO_HEIGHT = 40
 
-ASSETS_DIR = Path(__file__).parent / "img"
 LOGO_PATH = ASSETS_DIR / "chu_logo.svg"
 
 

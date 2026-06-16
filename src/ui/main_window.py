@@ -6,10 +6,7 @@ from pathlib import Path
 from PySide6.QtCore import QElapsedTimer, QTimer, Qt, QUrl
 from PySide6.QtGui import QPixmap
 from PySide6.QtMultimedia import (
-    QAudioInput,
-    QMediaCaptureSession,
     QMediaDevices,
-    QMediaFormat,
     QMediaRecorder,
 )
 from PySide6.QtWidgets import (
@@ -17,27 +14,18 @@ from PySide6.QtWidgets import (
 )
 
 from ui.chat_area import ChatArea
+from ui.constants import WINDOW_MIN_SIZE, WINDOW_TITLE
 from ui.header_widget import HeaderWidget, LOGO_PATH
 from ui.input_widget import InputWidget
 from ui.styles import (
     MAIN_WINDOW_STYLE, RECORDING_BUTTON_STYLE, RECORDING_TIMER_STYLE,
     TRANSCRIPTION_BUTTON_STYLE, TRANSCRIPTION_TIMER_STYLE
 )
-from services.mistral_service import MistralService
-from services.mistral_request_thread import MistralRequestThread
-from services.transcript_extraction_request_thread import (
-    TranscriptExtractionRequestThread,
-)
-from services.transcript_extraction_service import TranscriptExtractionService
-from services.transcription_request_thread import TranscriptionRequestThread
-from services.transcription_service import TranscriptionService
+from controllers.chat_controller import ChatController
+from controllers.transcription_controller import TranscriptionController
+from services.audio_recorder_manager import AudioRecorderManager
 from models.message import Role
 from ui.responsive import main_window_metrics
-
-
-# ==== CONSTANTS ====
-WINDOW_TITLE = "Générateur de Fiche Médicale - CHU Besançon"
-WINDOW_MIN_SIZE = (760, 560)
 
 
 class MainWindow(QMainWindow):
@@ -46,15 +34,40 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self._configure_window()
-        self._mistral_service = MistralService()
-        self._request_thread: MistralRequestThread | None = None
-        self._transcription_thread: TranscriptionRequestThread | None = None
-        self._extraction_thread: TranscriptExtractionRequestThread | None = None
+        self._chat_controller = ChatController(self)
+        self._chat_controller.chunk_received.connect(self._on_chunk_received)
+        self._chat_controller.stream_finished.connect(self._on_stream_finished)
+        self._chat_controller.error_occurred.connect(self._on_error)
+        self._chat_controller.request_finished.connect(self._on_thread_finished)
         self._recorded_audio_path: Path | None = None
         self._recording_stop_requested = False
-        self._capture_session: QMediaCaptureSession | None = None
-        self._audio_input: QAudioInput | None = None
-        self._audio_recorder: QMediaRecorder | None = None
+        self._transcription_controller = TranscriptionController(self)
+        self._transcription_controller.transcription_finished.connect(
+            self._on_transcription_finished
+        )
+        self._transcription_controller.transcription_error.connect(
+            self._on_transcription_error
+        )
+        self._transcription_controller.transcription_thread_finished.connect(
+            self._on_transcription_thread_finished
+        )
+        self._transcription_controller.extraction_finished.connect(
+            self._on_extraction_finished
+        )
+        self._transcription_controller.extraction_error.connect(
+            self._on_extraction_error
+        )
+        self._transcription_controller.extraction_thread_finished.connect(
+            self._on_extraction_thread_finished
+        )
+        self._audio_manager = AudioRecorderManager(self)
+        self._audio_manager.recorderStateChanged.connect(
+            self._on_recorder_state_changed
+        )
+        self._audio_manager.actualLocationChanged.connect(
+            self._on_recording_location_changed
+        )
+        self._audio_manager.errorOccurred.connect(self._on_recorder_error)
         self._transcription_timer = QTimer(self)
         self._transcription_timer.setInterval(100)
         self._transcription_timer.timeout.connect(self._update_transcription_timer)
@@ -69,27 +82,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(WINDOW_TITLE)
         self.setMinimumSize(*WINDOW_MIN_SIZE)
         self.setStyleSheet(MAIN_WINDOW_STYLE)
-
-    def _setup_audio_recorder(self) -> None:
-        """Configure an isolated microphone recorder for temporary WAV files."""
-        self._capture_session = QMediaCaptureSession(self)
-        self._audio_input = QAudioInput(self)
-        self._audio_recorder = QMediaRecorder(self)
-
-        media_format = QMediaFormat()
-        media_format.setFileFormat(QMediaFormat.FileFormat.Wave)
-        media_format.setAudioCodec(QMediaFormat.AudioCodec.Wave)
-        self._audio_recorder.setMediaFormat(media_format)
-
-        self._capture_session.setAudioInput(self._audio_input)
-        self._capture_session.setRecorder(self._audio_recorder)
-        self._audio_recorder.recorderStateChanged.connect(
-            self._on_recorder_state_changed
-        )
-        self._audio_recorder.actualLocationChanged.connect(
-            self._on_recording_location_changed
-        )
-        self._audio_recorder.errorOccurred.connect(self._on_recorder_error)
 
     # ==================== UI SETUP ====================
 
@@ -137,11 +129,7 @@ class MainWindow(QMainWindow):
 
     def _on_transcription_clicked(self) -> None:
         """Start or stop microphone recording."""
-        if (
-            self._audio_recorder is not None
-            and self._audio_recorder.recorderState()
-            == QMediaRecorder.RecorderState.RecordingState
-        ):
+        if self._audio_manager.is_recording():
             self._stop_audio_recording()
             return
 
@@ -153,8 +141,7 @@ class MainWindow(QMainWindow):
             )
             return
 
-        if self._audio_recorder is None:
-            self._setup_audio_recorder()
+        self._audio_manager.setup()
 
         self._cleanup_recorded_audio()
         self._new_conversation_button.setEnabled(False)
@@ -162,9 +149,6 @@ class MainWindow(QMainWindow):
             Path(tempfile.gettempdir()) / f"gen_medical_sheet_{uuid.uuid4().hex}.wav"
         )
         self._recording_stop_requested = False
-        self._audio_recorder.setOutputLocation(
-            QUrl.fromLocalFile(str(self._recorded_audio_path))
-        )
 
         self._transcription_button.setText("Arrêter")
         self._transcription_button.setToolTip("Arrêter l'enregistrement audio")
@@ -174,14 +158,14 @@ class MainWindow(QMainWindow):
         self._transcription_timer_label.show()
         self._transcription_elapsed.start()
         self._transcription_timer.start()
-        self._audio_recorder.record()
+        self._audio_manager.start(self._recorded_audio_path)
 
     def _stop_audio_recording(self) -> None:
         """Stop recording and wait for Qt to finish writing the audio file."""
-        if self._audio_recorder is None:
+        if not self._audio_manager.is_recording():
             return
         self._recording_stop_requested = True
-        self._audio_recorder.stop()
+        self._audio_manager.stop()
         self._stop_transcription_timer()
         self._set_audio_processing_status("Préparation audio...")
 
@@ -212,24 +196,8 @@ class MainWindow(QMainWindow):
                 "Le fichier audio enregistré est introuvable ou n'a pas pu être finalisé."
             )
             return
-        try:
-            transcription_service = TranscriptionService()
-        except Exception as exc:
-            self._on_transcription_error(str(exc))
-            return
-
         self._set_audio_processing_status("Transcription en cours...")
-
-        self._transcription_thread = TranscriptionRequestThread(
-            transcription_service,
-            self._recorded_audio_path,
-        )
-        self._transcription_thread.transcription_finished.connect(
-            self._on_transcription_finished
-        )
-        self._transcription_thread.error_occurred.connect(self._on_transcription_error)
-        self._transcription_thread.finished.connect(self._on_transcription_thread_finished)
-        self._transcription_thread.start()
+        self._transcription_controller.start_transcription(self._recorded_audio_path)
 
     def _update_transcription_timer(self) -> None:
         """Refresh the visible elapsed transcription time."""
@@ -251,14 +219,15 @@ class MainWindow(QMainWindow):
         self._transcription_timer_label.setText("Transcription échouée")
         self._reset_recording_button()
         self._cleanup_recorded_audio()
-        self._new_conversation_button.setEnabled(self._transcription_thread is None)
+        self._new_conversation_button.setEnabled(
+            not self._transcription_controller.is_transcribing
+        )
         QMessageBox.warning(self, "Transcription audio", error_message)
 
     def _on_transcription_thread_finished(self) -> None:
         """Release the completed audio request thread."""
         self._cleanup_recorded_audio()
-        self._transcription_thread = None
-        if self._extraction_thread is None:
+        if not self._transcription_controller.is_extracting:
             self._reset_recording_button()
             self._new_conversation_button.setEnabled(True)
 
@@ -307,25 +276,8 @@ class MainWindow(QMainWindow):
 
     def _start_extraction(self, transcript: str) -> None:
         """Automatically extract compact data from the isolated raw transcript."""
-        try:
-            extraction_service = TranscriptExtractionService()
-        except Exception as exc:
-            self._on_extraction_error(str(exc))
-            self._reset_recording_button()
-            self._new_conversation_button.setEnabled(True)
-            return
-
         self._new_conversation_button.setEnabled(False)
-        self._extraction_thread = TranscriptExtractionRequestThread(
-            extraction_service,
-            transcript,
-        )
-        self._extraction_thread.extraction_finished.connect(
-            self._on_extraction_finished
-        )
-        self._extraction_thread.error_occurred.connect(self._on_extraction_error)
-        self._extraction_thread.finished.connect(self._on_extraction_thread_finished)
-        self._extraction_thread.start()
+        self._transcription_controller.start_extraction(transcript)
 
     def _on_extraction_finished(self, extracted_data: object) -> None:
         """Print structured JSON for testing without exposing it in the chatbot."""
@@ -342,7 +294,6 @@ class MainWindow(QMainWindow):
 
     def _on_extraction_thread_finished(self) -> None:
         """Release the automatic extraction thread."""
-        self._extraction_thread = None
         self._reset_recording_button()
         self._new_conversation_button.setEnabled(True)
 
@@ -373,20 +324,7 @@ class MainWindow(QMainWindow):
         self._chat_widget.start_streaming_message()
 
         # Start background API request with streaming
-        self._request_thread = MistralRequestThread(self._mistral_service, user_message)
-        self._request_thread.chunk_received.connect(
-            lambda chunk, cid=conversation_id: self._on_chunk_received(cid, chunk)
-        )
-        self._request_thread.stream_finished.connect(
-            lambda cid=conversation_id: self._on_stream_finished(cid)
-        )
-        self._request_thread.error_occurred.connect(
-            lambda error_message, cid=conversation_id: self._on_error(cid, error_message)
-        )
-        self._request_thread.finished.connect(
-            lambda cid=conversation_id: self._on_thread_finished(cid)
-        )
-        self._request_thread.start()
+        self._chat_controller.send_message(conversation_id, user_message)
 
     def _on_chunk_received(self, conversation_id: int, chunk: str) -> None:
         """Handle incoming text chunk (typewriter effect)."""
@@ -417,29 +355,27 @@ class MainWindow(QMainWindow):
         """Clean up thread connections after completion."""
         if conversation_id != self._conversation_session_id:
             return
-        self._request_thread = None
 
     def _start_new_conversation(self) -> None:
         """Reset the UI and AI history for a fresh conversation."""
         self._conversation_session_id += 1
-        self._request_thread = None
+        self._chat_controller.cancel(wait=False)
+        self._transcription_controller.cancel()
         self._spinner.stop()
         self._send_button.setEnabled(True)
         self._input_field.clear()
         self._chat_widget.clear_conversation()
-        self._mistral_service.clear_history()
+        self._chat_controller.clear_history()
         self._audio_spinner.stop()
         self._transcription_timer_label.hide()
         self._cleanup_recorded_audio()
 
     def closeEvent(self, event) -> None:
         """Stop recording and remove temporary audio before closing."""
-        if (
-            self._audio_recorder is not None
-            and self._audio_recorder.recorderState()
-            == QMediaRecorder.RecorderState.RecordingState
-        ):
-            self._audio_recorder.stop()
+        if self._audio_manager.is_recording():
+            self._audio_manager.stop()
+        self._chat_controller.cancel()
+        self._transcription_controller.cancel()
         self._audio_spinner.stop()
         self._cleanup_recorded_audio()
         super().closeEvent(event)
