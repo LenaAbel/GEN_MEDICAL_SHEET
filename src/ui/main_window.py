@@ -148,8 +148,9 @@ class MainWindow(QMainWindow):
         )
         self._recording_stop_requested = False
 
-        self._transcription_button.setText("Arrêter")
+        self._transcription_button.setAccessibleName("Arrêter l'enregistrement audio")
         self._transcription_button.setToolTip("Arrêter l'enregistrement audio")
+        self._transcription_button.setStatusTip("Arrêter l'enregistrement audio")
         self._transcription_button.setStyleSheet(RECORDING_BUTTON_STYLE)
         self._transcription_timer_label.setText("Enregistrement 00:00")
         self._transcription_timer_label.setStyleSheet(RECORDING_TIMER_STYLE)
@@ -237,8 +238,9 @@ class MainWindow(QMainWindow):
 
     def _reset_recording_button(self) -> None:
         """Restore the recording button after processing completes."""
-        self._transcription_button.setText("Enregistrer")
+        self._transcription_button.setAccessibleName("Enregistrer l'audio")
         self._transcription_button.setToolTip("Démarrer un enregistrement audio")
+        self._transcription_button.setStatusTip("Démarrer un enregistrement audio")
         self._transcription_button.setStyleSheet(TRANSCRIPTION_BUTTON_STYLE)
         self._transcription_button.setEnabled(True)
         self._transcription_button.show()

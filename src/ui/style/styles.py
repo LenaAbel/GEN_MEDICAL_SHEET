@@ -160,41 +160,37 @@ QPushButton {
 NEW_CONVERSATION_BUTTON_STYLE = """
 QPushButton {
     background-color: transparent;
-    color: #1f80c2;
     border: 1px solid #D6E8F5;
-    border-radius: 16px;
-    padding: 6px 12px;
-    font-size: 18px;
-    font-weight: bold;
+    border-radius: 18px;
+    padding: 5px;
 }
 QPushButton:hover {
     background-color: #EEF7FC;
 }
 QPushButton:pressed {
     background-color: #DCEEF9;
+}
+QPushButton:disabled {
+    background-color: transparent;
+    border-color: #E3E3E3;
 }
 """
 
 TRANSCRIPTION_BUTTON_STYLE = """
 QPushButton {
-    background-color: #EEF7FC;
-    color: #1568A3;
-    border: 1px solid #BBDCF0;
-    border-radius: 16px;
-    padding: 7px 14px;
-    font-size: 12px;
-    font-weight: 600;
+    background-color: transparent;
+    border: none;
+    border-radius: 18px;
+    padding: 6px;
 }
 QPushButton:hover {
-    background-color: #DCEEF9;
+    background-color: #EEF7FC;
 }
 QPushButton:pressed {
-    background-color: #C9E4F5;
+    background-color: #DCEEF9;
 }
 QPushButton:disabled {
-    background-color: #F2F2F2;
-    color: #999999;
-    border-color: #DDDDDD;
+    background-color: transparent;
 }
 """
 
@@ -212,12 +208,9 @@ QLabel {
 RECORDING_BUTTON_STYLE = """
 QPushButton {
     background-color: #FFF1F0;
-    color: #A62B24;
     border: 1px solid #E7AAA6;
-    border-radius: 16px;
-    padding: 7px 14px;
-    font-size: 12px;
-    font-weight: 600;
+    border-radius: 18px;
+    padding: 5px;
 }
 QPushButton:hover {
     background-color: #FFE1DF;

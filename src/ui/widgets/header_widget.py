@@ -1,8 +1,16 @@
-from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QPixmap
+from pathlib import Path
+
+from PySide6.QtCore import QSize, Signal, Qt
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
 
-from config.constants import ASSETS_DIR
+from config.constants import (
+    ASSETS_DIR,
+    HEADER_ACTION_BUTTON_SIZE,
+    HEADER_ACTION_ICON_SIZE,
+    NEW_CONVERSATION_ICON_PATH,
+    RECORD_ICON_PATH,
+)
 from ui.widgets.spinner import LoadingSpinner
 from ui.style.styles import (
     HEADER_STYLE,
@@ -52,17 +60,11 @@ class HeaderWidget(QWidget):
         self.transcription_timer_label.hide()
         layout.addWidget(self.transcription_timer_label)
 
-        self.transcription_button = QPushButton("Enregistrer")
-        self.transcription_button.setToolTip("Démarrer un enregistrement audio")
-        self.transcription_button.setCursor(Qt.PointingHandCursor)
-        self.transcription_button.setStyleSheet(TRANSCRIPTION_BUTTON_STYLE)
+        self.transcription_button = self._build_transcription_button()
         self.transcription_button.clicked.connect(self.transcription_toggled.emit)
         layout.addWidget(self.transcription_button)
 
-        self.new_conversation_button = QPushButton("+")
-        self.new_conversation_button.setToolTip("Nouvelle conversation")
-        self.new_conversation_button.setCursor(Qt.PointingHandCursor)
-        self.new_conversation_button.setStyleSheet(NEW_CONVERSATION_BUTTON_STYLE)
+        self.new_conversation_button = self._build_new_conversation_button()
         self.new_conversation_button.clicked.connect(
             self.new_conversation_requested.emit
         )
@@ -73,3 +75,52 @@ class HeaderWidget(QWidget):
         self._transcription_timer_label = self.transcription_timer_label
         self._transcription_button = self.transcription_button
         self._new_conversation_button = self.new_conversation_button
+
+    def _build_transcription_button(self) -> QPushButton:
+        """Create the icon-only audio recording action."""
+        return self._build_header_action_button(
+            accessible_name="Enregistrer l'audio",
+            tooltip="Démarrer un enregistrement audio",
+            status_tip="Démarrer un enregistrement audio",
+            stylesheet=TRANSCRIPTION_BUTTON_STYLE,
+            icon_path=RECORD_ICON_PATH,
+            fallback_text="●",
+        )
+
+    def _build_new_conversation_button(self) -> QPushButton:
+        """Create the icon-only new conversation action."""
+        return self._build_header_action_button(
+            accessible_name="Nouvelle conversation",
+            tooltip="Démarrer une nouvelle conversation",
+            status_tip="Démarrer une nouvelle conversation",
+            stylesheet=NEW_CONVERSATION_BUTTON_STYLE,
+            icon_path=NEW_CONVERSATION_ICON_PATH,
+            fallback_text="+",
+        )
+
+    def _build_header_action_button(
+        self,
+        accessible_name: str,
+        tooltip: str,
+        status_tip: str,
+        stylesheet: str,
+        icon_path: Path,
+        fallback_text: str,
+    ) -> QPushButton:
+        """Create a consistently sized header icon button."""
+        button = QPushButton()
+        button.setAccessibleName(accessible_name)
+        button.setAccessibleDescription(tooltip)
+        button.setToolTip(tooltip)
+        button.setStatusTip(status_tip)
+        button.setCursor(Qt.PointingHandCursor)
+        button.setFixedSize(HEADER_ACTION_BUTTON_SIZE, HEADER_ACTION_BUTTON_SIZE)
+        button.setStyleSheet(stylesheet)
+
+        if icon_path.exists():
+            button.setIcon(QIcon(str(icon_path)))
+            button.setIconSize(QSize(HEADER_ACTION_ICON_SIZE, HEADER_ACTION_ICON_SIZE))
+        else:
+            button.setText(fallback_text)
+
+        return button
