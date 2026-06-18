@@ -34,6 +34,14 @@ Deactivate the environment:
 deactivate
 ```
 
+Environment variables
+
+Create a `.env` file in the project root containing your Mistral API key:
+
+```bash
+MISTRAL_API_KEY=your_api_key_here
+```
+
 ## Architecture
 
 The code is split by role.
