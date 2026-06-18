@@ -127,11 +127,14 @@ class MistralService:
             content=(
                 f"{AUDIO_CONTEXT_PREFIX}\n"
                 "Le JSON ci-dessous provient d'une transcription audio déjà résumée et "
-                "validée. Utilise-le uniquement comme complément aux données SFAR. "
-                "N'invente rien et ne mentionne une information audio que si elle est "
-                "utile et cohérente avec la demande.\n"
+                "validée. Il sert à récupérer les détails dits oralement pendant la "
+                "consultation mais absents ou oubliés dans la fiche SFAR. Utilise-le "
+                "uniquement comme complément aux données SFAR. N'invente rien. Si une "
+                "information audio contredit la SFAR ou semble incertaine, reste prudent "
+                "et indique qu'elle est à confirmer avec l'équipe d'anesthésie.\n"
                 f"```json\n{audio_json}\n```\n\n"
-                "N'utilise jamais la transcription brute: elle n'est pas fournie."
+                "N'utilise jamais la transcription brute: elle n'est pas fournie. "
+                "Ne mentionne pas au patient que l'information vient d'un enregistrement."
             ),
         )
         self._audio_context_added_to_history = True

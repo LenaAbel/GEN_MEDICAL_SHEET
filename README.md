@@ -141,13 +141,6 @@ MainWindow has an audio file
 -> MainWindow receives extraction result
 ```
 
-Rule of thumb:
-
-```text
-UI event -> MainWindow -> Controller -> Worker/Service
-Worker/Service -> Controller signal -> MainWindow -> UI update
-```
-
 ## Reference
 
 https://www.freecodecamp.org/news/build-a-local-ai/#heading-local-ai-power-with-qwen-3-and-ollama

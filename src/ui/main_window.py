@@ -284,6 +284,7 @@ class MainWindow(QMainWindow):
             self._chat_controller.set_audio_transcript_context(extracted_data)
             self._input_widget.show_audio_context_badge()
         self._audio_spinner.stop()
+        self._transcription_timer_label.hide()
 
     def _on_extraction_error(self, error_message: str) -> None:
         """Display a clear structured extraction error."""
